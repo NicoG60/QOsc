@@ -8,17 +8,26 @@
 class QOSC_EXPORT QOSCFloat64 : public QOSCAbstractType
 {
 public:
-    QOSCFloat64() : QOSCAbstractType(QOSC::Float64Type) {}
-    QOSCFloat64(const QOSCFloat64& copy) = default;
-    QOSCFloat64(QOSCFloat64&& move) = default;
+    QOSC_TYPE_CTOR(QOSCFloat64, QOSC::Float64Type);
 
-    inline QOSCFloat64(double f) : QOSCAbstractType(QOSC::Float64Type), _f(f) {}
+    QOSC_TYPE_DATA_CTOR(QOSCFloat64, QOSC::Float64Type, Double, double)
 
-    inline operator double() const { return _f; }
+    QOSC_ACCESS_IMPL_CAST(Int,   qint32, _f);
+    QOSC_ACCESS_IMPL_CAST(Int32, qint32, _f);
 
-    inline QOSCFloat64& operator=(double f) { _f = f; return *this; };
-    QOSCFloat64& operator=(const QOSCFloat64& i) = default;
-    QOSCFloat64& operator=(QOSCFloat64&& i) = default;
+    QOSC_ACCESS_IMPL_CAST(Long,  qint64, _f);
+    QOSC_ACCESS_IMPL_CAST(Int64, qint64, _f);
+
+    QOSC_ACCESS_IMPL(Float,   float, _f);
+    QOSC_ACCESS_IMPL(Float32, float, _f);
+
+    QOSC_ACCESS_IMPL(Double,  double, _f);
+    QOSC_ACCESS_IMPL(Float64, double, _f);
+
+    QOSC_DERIVED_OPERATOR(QOSCFloat64, qint32);
+    QOSC_DERIVED_OPERATOR(QOSCFloat64, qint64);
+    QOSC_DERIVED_OPERATOR(QOSCFloat64, float);
+    QOSC_DERIVED_OPERATOR(QOSCFloat64, double);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('d'); }
     inline void writeData(QIODevice* dev) const override { QOSC::writeHelper(dev, _f); }

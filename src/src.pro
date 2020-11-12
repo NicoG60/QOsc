@@ -13,7 +13,6 @@ TARGET = QOSC
 
 SOURCES += \
     $$PWD/qosc.cpp \
-    qoscarray.cpp \
     qoscbundle.cpp \
     qoscinterface.cpp \
     qoscmessage.cpp \
@@ -21,7 +20,7 @@ SOURCES += \
     qoscpacket.cpp \
     qosctypehelper.cpp
 
-include(../include.pri)
+include(../include/include.pri)
 
 OBJECTS_DIR = tmp
 MOC_DIR = tmp

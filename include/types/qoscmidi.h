@@ -7,12 +7,7 @@
 class QOSC_EXPORT QOSCMidi : public QOSCAbstractType
 {
 public:
-    QOSCMidi() : QOSCAbstractType(QOSC::MidiType) {}
-    QOSCMidi(const QOSCMidi& copy) = default;
-    QOSCMidi(QOSCMidi&& move) = default;
-
-    QOSCMidi& operator=(const QOSCMidi& i) = default;
-    QOSCMidi& operator=(QOSCMidi&& i) = default;
+    QOSC_TYPE_CTOR(QOSCMidi, QOSC::MidiType);
 
     constexpr inline QOSCMidi(qint8 p, qint8 s, qint8 d1, qint8 d2) :
         QOSCAbstractType(QOSC::MidiType),

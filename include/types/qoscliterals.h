@@ -8,16 +8,11 @@ template<char C, QOSC::Type T>
 class QOSC_EXPORT QOSCLiteral : public QOSCAbstractType
 {
 public:
-    constexpr QOSCLiteral() : QOSCAbstractType(T) {}
-    constexpr QOSCLiteral(const QOSCLiteral& copy) = default;
-    constexpr QOSCLiteral(QOSCLiteral&& move) = default;
+    QOSC_TYPE_CTOR(QOSCLiteral, T);
 
-    QOSCLiteral& operator=(const QOSCLiteral& i) = default;
-    QOSCLiteral& operator=(QOSCLiteral&& i) = default;
+    virtual bool toBool() const override { return C == 'T' || C == 'I'; }
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar(C); }
-
-    constexpr inline operator bool() const { return C == 'T' || C == 'I'; }
 };
 
 typedef QOSCLiteral<'T', QOSC::TrueType>      QOSCTrue;

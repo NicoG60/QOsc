@@ -7,39 +7,34 @@
 class QOSC_EXPORT QOSCBlob : public QOSCAbstractType
 {
 public:
-    QOSCBlob() : QOSCAbstractType(QOSC::BlobType) {}
-    QOSCBlob(const QOSCBlob& copy) = default;
-    QOSCBlob(QOSCBlob&& move) = default;
+    QOSC_TYPE_CTOR(QOSCBlob, QOSC::BlobType);
 
-    inline QOSCBlob(const QByteArray& data) : QOSCAbstractType(QOSC::BlobType), _data(data) {}
-    inline QOSCBlob(QByteArray&& data) : QOSCAbstractType(QOSC::BlobType), _data(data) {}
+    QOSC_TYPE_DATA_CTOR(QOSCBlob, QOSC::BlobType, Blob, const QByteArray&)
+    QOSC_TYPE_DATA_CTOR(QOSCBlob, QOSC::BlobType, Blob, QByteArray&&)
 
-    inline operator QByteArray() const { return _data; }
+    QOSC_ACCESS_IMPL(Blob,      QByteArray, _data);
+    QOSC_ACCESS_IMPL(ByteArray, QByteArray, _data);
+    QOSC_ACCESS_IMPL_IO(String, QString, _data = v.toLatin1(), QString::fromLatin1(_data));
+    QOSC_ACCESS_IMPL_IO(Symbol, QString, _data = v.toLatin1(), QString::fromLatin1(_data));
 
-    QOSCBlob& operator=(const QOSCBlob& i) = default;
-    QOSCBlob& operator=(QOSCBlob&& i) = default;
-
-    inline QOSCBlob& operator=(const QByteArray& data) { _data = data; return *this; };
-    inline QOSCBlob& operator=(QByteArray&& data) { _data = data; return *this; };
+    QOSC_DERIVED_OPERATOR(QOSCBlob, QByteArray);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('b'); }
-    inline void writeData(QIODevice* dev) const override
+    inline void writeData(QIODevice* dev)    const override
     {
         QByteArray d = _data;
 
         while(d.size() % 4 != 0)
             d.append('\x0');
 
-        qint32 size = d.size();
-
-        dev->write((const char*)&size, sizeof (qint32));
+        QOSC::writeHelper(dev, static_cast<qint32>(d.size()));
         dev->write(d);
     }
 
     inline void readData(QIODevice* dev) override
     {
         qint32 size;
-        dev->read((char*)&size, sizeof (qint32));
+        QOSC::readHelper(dev, &size);
         _data = dev->read(size);
     }
 

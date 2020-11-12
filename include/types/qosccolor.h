@@ -8,20 +8,14 @@
 class QOSC_EXPORT QOSCColor : public QOSCAbstractType
 {
 public:
-    QOSCColor() : QOSCAbstractType(QOSC::ColorType) {}
-    QOSCColor(const QOSCColor& copy) = default;
-    QOSCColor(QOSCColor&& move) = default;
+    QOSC_TYPE_CTOR(QOSCColor, QOSC::ColorType);
 
-    inline QOSCColor(const QColor& c) : QOSCAbstractType(QOSC::ColorType), _c(c) {}
-    inline QOSCColor(QColor&& c) : QOSCAbstractType(QOSC::ColorType), _c(c) {}
+    QOSC_TYPE_DATA_CTOR(QOSCColor, QOSC::ColorType, Color, const QColor&)
+    QOSC_TYPE_DATA_CTOR(QOSCColor, QOSC::ColorType, Color, QColor&&)
 
-    inline operator QColor() const { return _c; }
+    QOSC_ACCESS_IMPL(Color, QColor, _c);
 
-    QOSCColor& operator=(const QOSCColor& i) = default;
-    QOSCColor& operator=(QOSCColor&& i) = default;
-
-    inline QOSCColor& operator=(const QColor& c) { _c = c; return *this; };
-    inline QOSCColor& operator=(QColor&& c) { _c = c; return *this; };
+    QOSC_DERIVED_OPERATOR(QOSCColor, QColor);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('r'); }
     inline void writeData(QIODevice* dev) const override

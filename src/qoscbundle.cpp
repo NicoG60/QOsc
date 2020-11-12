@@ -4,7 +4,7 @@
 
 bool QOSCBundle::isValid() const
 {
-    if(QDateTime(time) < QDateTime::currentDateTime() && quint64(time) != 1)
+    if(time.toDateTime() < QDateTime::currentDateTime() && quint64(time) != 1)
         return false;
 
     if(elements.isEmpty())
@@ -19,15 +19,21 @@ void QOSCBundle::write(QIODevice* dev) const
 
     time.writeData(dev);
 
+    qint64 size = 7+8;
+
     for(auto& e : elements)
     {
-        QBuffer buf;
-        buf.open(QIODevice::WriteOnly);
+        size += 4;
+        QByteArray data = e->package();
 
-        e->write(&buf);
+        QOSC::writeHelper(dev, static_cast<qint32>(data.size()));
+        size += dev->write(data);
+    }
 
-        QOSCBlob blob(buf.buffer());
-        blob.writeData(dev);
+    while(size % 4 != 0)
+    {
+        dev->putChar('\0');
+        size++;
     }
 }
 
@@ -38,10 +44,10 @@ void QOSCBundle::load(QIODevice* dev)
 
     time.readData(dev);
 
-    while(!dev->atEnd())
+    while(dev->bytesAvailable() > 0)
     {
         QOSCBlob blob;
         blob.readData(dev);
-        elements << QOSCPacket::read(blob);
+        elements << QOSCPacket::read(blob.toByteArray());
     }
 }

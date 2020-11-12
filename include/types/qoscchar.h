@@ -7,15 +7,15 @@
 class QOSC_EXPORT QOSCChar : public QOSCInt32
 {
 public:
-    QOSCChar() : QOSCInt32(QOSC::CharType) {}
-    QOSCChar(const QOSCChar& copy) = default;
-    QOSCChar(QOSCChar&& move) = default;
+    QOSC_TYPE_CTOR_BASE(QOSCChar, QOSCInt32, QOSC::CharType)
 
-    QOSCChar& operator=(const QOSCChar& i) = default;
-    QOSCChar& operator=(QOSCChar&& i) = default;
+    QOSC_TYPE_DATA_CTOR_BASE(QOSCChar, QOSCInt32, QOSC::CharType, Char, char)
 
-    inline QOSCChar(char c) : QOSCInt32(c, QOSC::CharType) {}
-    inline QOSCChar& operator=(char c) { QOSCInt32::operator=(c); return *this; }
+    QOSC_ACCESS_IMPL(Char, char, _i);
+
+    QOSC_DERIVED_OPERATOR_BASE(QOSCChar, QOSCInt32, qint32);
+    QOSC_DERIVED_OPERATOR_BASE(QOSCChar, QOSCInt32, qint64);
+    QOSC_DERIVED_OPERATOR_BASE(QOSCChar, QOSCInt32, char);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('c'); }
 };

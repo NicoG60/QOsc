@@ -36,11 +36,11 @@ void QOSCMessage::load(QIODevice* dev)
     QOSCString tmp;
 
     tmp.readData(dev);
-    pattern = tmp;
+    pattern = tmp.toString();
     compilePattern();
 
     tmp.readData(dev);
-    QString tmptags = tmp;
+    QString tmptags = tmp.toString();
 
     // does not support arrays yet
     static QRegularExpression reg(R"(^,[ifsbhtdScrmTFNI]*$)");

@@ -12,18 +12,26 @@ protected:
     QOSCInt32(qint32 i, QOSC::Type t) : QOSCAbstractType(t), _i(i) {}
 
 public:
-    QOSCInt32() : QOSCAbstractType(QOSC::Int32Type) {}
-    QOSCInt32(const QOSCInt32& copy) = default;
-    QOSCInt32(QOSCInt32&& move) = default;
+    QOSC_TYPE_CTOR(QOSCInt32, QOSC::Int32Type);
 
-    QOSCInt32& operator=(const QOSCInt32& i) = default;
-    QOSCInt32& operator=(QOSCInt32&& i) = default;
+    QOSC_TYPE_DATA_CTOR(QOSCInt32, QOSC::Int32Type, Int, qint32)
 
-    inline QOSCInt32(qint32 i) : QOSCAbstractType(QOSC::Int32Type), _i(i) {}
+    QOSC_ACCESS_IMPL(Int,   qint32, _i);
+    QOSC_ACCESS_IMPL(Int32, qint32, _i);
 
-    inline operator qint32() const { return _i; }
+    QOSC_ACCESS_IMPL(Long,  qint64, _i);
+    QOSC_ACCESS_IMPL(Int64, qint64, _i);
 
-    inline QOSCInt32& operator=(qint32 i) { _i = i; return *this; };
+    QOSC_ACCESS_IMPL_CAST(Float,   float, _i);
+    QOSC_ACCESS_IMPL_CAST(Float32, float, _i);
+
+    QOSC_ACCESS_IMPL_CAST(Double,  double, _i);
+    QOSC_ACCESS_IMPL_CAST(Float64, double, _i);
+
+    QOSC_DERIVED_OPERATOR(QOSCInt32, qint32);
+    QOSC_DERIVED_OPERATOR(QOSCInt32, qint64);
+    QOSC_DERIVED_OPERATOR(QOSCInt32, float);
+    QOSC_DERIVED_OPERATOR(QOSCInt32, double);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('i'); }
     inline void writeData(QIODevice* dev) const override { QOSC::writeHelper(dev, _i); }

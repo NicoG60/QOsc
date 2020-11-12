@@ -13,6 +13,5 @@
 #include "qosccolor.h"
 #include "qoscmidi.h"
 #include "qoscliterals.h"
-#include "qoscarray.h"
 
 #endif // QOSCTYPES_H

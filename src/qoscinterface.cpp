@@ -159,7 +159,7 @@ void QOSCInterface::processBundle(const QOSCBundle::ptr& b, QOSCTimeTag* time)
     }
     else
     {
-        QDateTime dt = *time_;
+        QDateTime dt = time_->toDateTime();
         qint64 ms = dt.toMSecsSinceEpoch();
         qint64 now = QDateTime::currentMSecsSinceEpoch();
 

@@ -13,20 +13,17 @@ protected:
     QOSCString(QString&& str, QOSC::Type t) : QOSCAbstractType(t), _str(str) {}
 
 public:
-    QOSCString() : QOSCAbstractType(QOSC::StringType) {}
-    QOSCString(const QOSCString& copy) = default;
-    QOSCString(QOSCString&& move) = default;
+    QOSC_TYPE_CTOR(QOSCString, QOSC::StringType);
 
-    inline QOSCString(const QString& str) : QOSCAbstractType(QOSC::StringType), _str(str) {}
-    inline QOSCString(QString&& str) : QOSCAbstractType(QOSC::StringType), _str(str) {}
+    QOSC_TYPE_DATA_CTOR(QOSCString, QOSC::StringType, String, const QString&)
+    QOSC_TYPE_DATA_CTOR(QOSCString, QOSC::StringType, String, QString&&)
 
-    inline operator QString() const { return _str; }
+    QOSC_ACCESS_IMPL(String, QString, _str);
+    QOSC_ACCESS_IMPL(Symbol, QString, _str);
+    QOSC_ACCESS_IMPL_IO(Blob,      QByteArray, _str = QString::fromLatin1(v), _str.toLatin1());
+    QOSC_ACCESS_IMPL_IO(ByteArray, QByteArray, _str = QString::fromLatin1(v), _str.toLatin1());
 
-    QOSCString& operator=(const QOSCString& i) = default;
-    QOSCString& operator=(QOSCString&& i) = default;
-
-    inline QOSCString& operator=(const QString& str) { _str = str; return *this; };
-    inline QOSCString& operator=(QString&& str) { _str = str; return *this; };
+    QOSC_DERIVED_OPERATOR(QOSCString, QString);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('s'); }
     inline void writeData(QIODevice* dev) const override
@@ -52,8 +49,13 @@ public:
             _str.append(c);
         }
 
-        while(dev->peek(&c, 1) == 1 && c == 0)
+        int i = _str.size()+1;
+
+        while(i % 4 != 0 && dev->peek(&c, 1) == 1 && c == 0)
+        {
             dev->getChar(nullptr);
+            i++;
+        }
     }
 
 private:

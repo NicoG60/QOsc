@@ -7,14 +7,12 @@
 class QOSC_EXPORT QOSCSymbol : public QOSCString
 {
 public:
-    QOSCSymbol() : QOSCString(QOSC::SymbolType) {}
-    QOSCSymbol(const QOSCSymbol& copy) = default;
-    QOSCSymbol(QOSCSymbol&& move) = default;
+    QOSC_TYPE_CTOR_BASE(QOSCSymbol, QOSCString, QOSC::SymbolType);
 
-    inline QOSCSymbol(const QString& str) : QOSCString(str, QOSC::SymbolType) {}
-    inline QOSCSymbol(QString&& str) : QOSCString(str, QOSC::SymbolType) {}
-    inline QOSCSymbol& operator=(const QString& str) { QOSCString::operator=(str); return *this; }
-    inline QOSCSymbol& operator=(QString&& str) { QOSCString::operator=(str); return *this; }
+    QOSC_TYPE_DATA_CTOR_BASE(QOSCSymbol, QOSCString, QOSC::SymbolType, String, const QString&)
+    QOSC_TYPE_DATA_CTOR_BASE(QOSCSymbol, QOSCString, QOSC::SymbolType, String, QString&&)
+
+    QOSC_DERIVED_OPERATOR(QOSCSymbol, QString);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('S'); }
 };

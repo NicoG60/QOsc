@@ -11,33 +11,30 @@ class QOSC_EXPORT QOSCTimeTag : public QOSCAbstractType
     constexpr static quint64 factor = 1ul << 32;
 
 public:
-    QOSCTimeTag() : QOSCAbstractType(QOSC::TimeTagType) {}
-    QOSCTimeTag(const QOSCTimeTag& copy) = default;
-    QOSCTimeTag(QOSCTimeTag&& move) = default;
+    QOSC_TYPE_CTOR(QOSCTimeTag, QOSC::TimeTagType);
+
+    QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, Double, double)
+    QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, Uint64, quint64)
+    QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, DateTime, const QDateTime&)
+    QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, DateTime, QDateTime&&)
 
     static inline QOSCTimeTag now()  { return {1ull}; };
     static inline QOSCTimeTag asap() { return {1ull}; };
 
-    QOSCTimeTag& operator=(const QOSCTimeTag& i) = default;
-    QOSCTimeTag& operator=(QOSCTimeTag&& i) = default;
+    inline quint64 toUint64() const   { return _t; }
+    inline void fromUint64(quint64 v) { _t = v; }
 
-    inline QOSCTimeTag(quint64 t) : QOSCAbstractType(QOSC::TimeTagType), _t(t) {}
-
-    inline QOSCTimeTag(double t) : QOSCAbstractType(QOSC::TimeTagType), _t(t >= 0 ? static_cast<quint64>(t*factor) : 1) {}
-
-    inline QOSCTimeTag(const QDateTime& t) :
-        QOSCTimeTag((t.toMSecsSinceEpoch()/1000.0)+unix_to_ntp)
-    { }
-
-    inline operator quint64() const { return _t; }
-    inline operator double() const { return _t/static_cast<double>(factor); }
-    inline operator QDateTime() const { return QDateTime::fromMSecsSinceEpoch((operator double() - unix_to_ntp)*1000); }
+    QOSC_ACCESS_IMPL_IO(Double, double, _t = (v >= 0 ? static_cast<quint64>(v*factor) : 1),
+                                        _t/static_cast<double>(factor));
+    QOSC_ACCESS_IMPL_IO(DateTime, QDateTime, _t = (v.toMSecsSinceEpoch()/1000.0)+unix_to_ntp,
+                                             QDateTime::fromMSecsSinceEpoch((toDouble() - unix_to_ntp)*1000))
 
     inline bool isNow() const { return (_t == 1ull); }
 
-    inline QOSCTimeTag& operator=(qint64 t) { _t = t; return *this; }
-    inline QOSCTimeTag& operator=(double t) { *this = QOSCTimeTag(t); return *this; }
-    inline QOSCTimeTag& operator=(const QDateTime& t) { *this = QOSCTimeTag(t); return *this; }
+    QOSCTimeTag& operator =(quint64 value) { fromUint64(value); return *this; }
+    operator quint64() const { return toUint64(); }
+    QOSC_DERIVED_OPERATOR(QOSCTimeTag, double);
+    QOSC_DERIVED_OPERATOR(QOSCTimeTag, QDateTime);
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar('t'); }
     inline void writeData(QIODevice* dev) const override { QOSC::writeHelper(dev, _t); }
