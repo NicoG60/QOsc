@@ -2,6 +2,7 @@
 #include <QBuffer>
 #include <QNetworkDatagram>
 #include <QTimer>
+#include <QNetworkInterface>
 
 QOSCInterface::QOSCInterface(QObject* parent) :
     QObject(parent),
@@ -10,6 +11,7 @@ QOSCInterface::QOSCInterface(QObject* parent) :
     _localAddr("127.0.0.1"),
     _localPort(0)
 {
+    QObject::connect(&_s, &QAbstractSocket::readyRead, this, &QOSCInterface::readReady);
     rebind();
 }
 
@@ -18,7 +20,7 @@ void QOSCInterface::setRemoteAddr(const QHostAddress& addr)
     if(addr != _remoteAddr)
     {
         _remoteAddr = addr;
-        remoteAddrchanged(addr);
+        remoteAddrChanged(addr);
         updateLocalAddr();
     }
 }
@@ -37,7 +39,7 @@ void QOSCInterface::setLocalPort(quint16 p)
     if(p != _localPort)
     {
         _localPort = p;
-        remotePortChanged(p);
+        localPortChanged(p);
         rebind();
     }
 }
@@ -81,22 +83,47 @@ void QOSCInterface::send(const QOSCBundle& b)
 
 void QOSCInterface::rebind()
 {
+    if(_s.isValid())
+    {
+        _s.disconnectFromHost();
+
+        if(_s.state() != QAbstractSocket::UnconnectedState)
+            _s.waitForDisconnected();
+    }
+
     _isListening = _s.bind(_localPort);
+
     if(_s.localPort() != _localPort)
     {
         _localPort = _s.localPort();
-        remotePortChanged(_s.localPort());
+        localPortChanged(_s.localPort());
     }
 }
 
 void QOSCInterface::updateLocalAddr()
 {
-    setLocalAddr(_s.localAddress());
+    for(auto& iface : QNetworkInterface::allInterfaces())
+    {
+        if(!iface.flags().testFlag(QNetworkInterface::IsUp))
+            continue;
+
+        for(auto& entry : iface.addressEntries())
+        {
+            QString addr = QStringLiteral("%1/%2").arg(entry.ip().toString()).arg(entry.netmask().toString());
+            auto p = QHostAddress::parseSubnet(addr);
+
+            if(_remoteAddr.isInSubnet(p))
+            {
+                setLocalAddr(entry.ip());
+                return;
+            }
+        }
+    }
 }
 
 void QOSCInterface::setLocalAddr(const QHostAddress& addr)
 {
-    if(addr != _localAddr)
+    if(!addr.isNull() && !addr.isEqual(_localAddr))
     {
         _localAddr = addr;
         localAddrChanged(addr);
@@ -116,10 +143,11 @@ void QOSCInterface::readReady()
         auto packet = QOSCPacket::read(datagram.data());
 
         processPacket(packet);
+        emit packetReceived(packet);
     }
 }
 
-void QOSCInterface::processPacket(const QOSCPacket::ptr& p, QOSCTimeTag *time)
+void QOSCInterface::processPacket(const QOSCPacket::ptr& p, const QOSCTimeTag *time)
 {
     if(!p->isValid())
         return;
@@ -148,26 +176,33 @@ void QOSCInterface::processMessage(const QOSCMessage::ptr& msg)
     }
 }
 
-void QOSCInterface::processBundle(const QOSCBundle::ptr& b, QOSCTimeTag* time)
+void QOSCInterface::processBundle(const QOSCBundle::ptr& b, const QOSCTimeTag* time)
 {
-    QOSCTimeTag* time_ = time ? time : &b->time;
+    const QOSCTimeTag* t = time ? time : &b->time;
 
-    if(time_->isNow())
-    {
-        for(auto& e : b->elements)
-            processPacket(e, time_);
-    }
+    if(t->isNow())
+        executeBundle(b, t);
     else
     {
-        QDateTime dt = time_->toDateTime();
-        qint64 ms = dt.toMSecsSinceEpoch();
+        qint64 ms = t->toDateTime().toMSecsSinceEpoch();
         qint64 now = QDateTime::currentMSecsSinceEpoch();
 
-        QTimer::singleShot(ms - now,
-        [=]()
+        if(ms <= now)
+            executeBundle(b, &QOSCTimeTag::asap());
+        else
         {
-            QOSCTimeTag tmp(quint64(1));
-            processBundle(b, &tmp);
-        });
+            ms -= now;
+            QTimer::singleShot(ms,
+            [=]()
+            {
+                processBundle(b, &QOSCTimeTag::asap());
+            });
+        }
     }
+}
+
+void QOSCInterface::executeBundle(const QOSCBundle::ptr& b, const QOSCTimeTag *time)
+{
+    for(auto& e : b->elements)
+        processPacket(e, time);
 }

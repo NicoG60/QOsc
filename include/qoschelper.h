@@ -5,11 +5,11 @@
 #include <QtEndian>
 #include <QIODevice>
 
-class QOSCAbstractType;
+class QOSCValue;
 namespace QOSC
 {
 
-Q_NAMESPACE_EXPORT(QOSC_EXPORT)
+//Q_NAMESPACE_EXPORT(QOSC_EXPORT)
 
 enum QOSC_EXPORT Type
 {
@@ -30,25 +30,24 @@ enum QOSC_EXPORT Type
     SymbolType,
     TimeTagType
 };
-Q_ENUM_NS(Type)
 
-QSharedPointer<QOSCAbstractType> make(const QByteArray& b);
-QSharedPointer<QOSCAbstractType> make(const QString& str);
+QSharedPointer<QOSCValue> makeValue(const QByteArray& b);
+QSharedPointer<QOSCValue> makeValue(const QString& str);
 
-QSharedPointer<QOSCAbstractType> make(char c);
+QSharedPointer<QOSCValue> makeValue(char c);
 
-QSharedPointer<QOSCAbstractType> make(qint32 i32);
-QSharedPointer<QOSCAbstractType> make(qint64 i64);
+QSharedPointer<QOSCValue> makeValue(qint32 i32);
+QSharedPointer<QOSCValue> makeValue(qint64 i64);
 
-QSharedPointer<QOSCAbstractType> make(float f);
-QSharedPointer<QOSCAbstractType> make(double d);
+QSharedPointer<QOSCValue> makeValue(float f);
+QSharedPointer<QOSCValue> makeValue(double d);
 
-QSharedPointer<QOSCAbstractType> make(const QDateTime& dt);
-QSharedPointer<QOSCAbstractType> make(const QColor& c);
-QSharedPointer<QOSCAbstractType> make(qint8 p, qint8 s, qint8 d1, qint8 d2);
+QSharedPointer<QOSCValue> makeValue(const QDateTime& dt);
+QSharedPointer<QOSCValue> makeValue(const QColor& c);
+QSharedPointer<QOSCValue> makeValue(qint8 p, qint8 s, qint8 d1, qint8 d2);
 
-QSharedPointer<QOSCAbstractType> make(bool b);
-QSharedPointer<QOSCAbstractType> make(std::nullptr_t ptr = nullptr);
+QSharedPointer<QOSCValue> makeValue(bool b);
+QSharedPointer<QOSCValue> makeValue(std::nullptr_t ptr = nullptr);
 
 template<class T>
 void writeHelper(QIODevice* dev, T v)

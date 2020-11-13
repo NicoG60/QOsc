@@ -12,15 +12,14 @@ TARGET = QOSC
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    $$PWD/qosc.cpp \
-    qoscbundle.cpp \
-    qoscinterface.cpp \
-    qoscmessage.cpp \
-    qoscmethod.cpp \
-    qoscpacket.cpp \
-    qosctypehelper.cpp
+    $$PWD/qoscbundle.cpp \
+    $$PWD/qoscinterface.cpp \
+    $$PWD/qoscmessage.cpp \
+    $$PWD/qoscmethod.cpp \
+    $$PWD/qoscpacket.cpp \
+    $$PWD/qoschelper.cpp
 
-include(../include/include.pri)
+include($$PWD/../include/include.pri)
 
 OBJECTS_DIR = tmp
 MOC_DIR = tmp

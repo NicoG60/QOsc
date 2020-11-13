@@ -2,10 +2,10 @@
 #define QOSCLITERALS_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 
 template<char C, QOSC::Type T>
-class QOSC_EXPORT QOSCLiteral : public QOSCAbstractType
+class QOSC_EXPORT QOSCLiteral : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCLiteral, T);

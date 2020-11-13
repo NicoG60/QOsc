@@ -2,10 +2,10 @@
 #define QOSCTIMETAG_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 #include <QDateTime>
 
-class QOSC_EXPORT QOSCTimeTag : public QOSCAbstractType
+class QOSC_EXPORT QOSCTimeTag : public QOSCValue
 {
     constexpr static quint64 unix_to_ntp = 2208988800ul;
     constexpr static quint64 factor = 1ul << 32;
@@ -18,8 +18,9 @@ public:
     QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, DateTime, const QDateTime&)
     QOSC_TYPE_DATA_CTOR(QOSCTimeTag, QOSC::TimeTagType, DateTime, QDateTime&&)
 
-    static inline QOSCTimeTag now()  { return {1ull}; };
-    static inline QOSCTimeTag asap() { return {1ull}; };
+    // Let them be const ref to static var so I can get pointer to them
+    static inline const QOSCTimeTag& now()  { static QOSCTimeTag t(1ull); return t; };
+    static inline const QOSCTimeTag& asap() { return now(); };
 
     inline quint64 toUint64() const   { return _t; }
     inline void fromUint64(quint64 v) { _t = v; }

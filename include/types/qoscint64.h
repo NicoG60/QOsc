@@ -2,10 +2,9 @@
 #define QOSCINT64_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
-#include "qosctypehelper.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCInt64 : public QOSCAbstractType
+class QOSC_EXPORT QOSCInt64 : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCInt64, QOSC::Int64Type);

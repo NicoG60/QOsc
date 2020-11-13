@@ -115,7 +115,7 @@ void QOSCMessage::load(QIODevice* dev)
     else
     {
         QByteArray data = dev->readAll();
-        args << QOSC::make(data);
+        args << QOSC::makeValue(data);
     }
 }
 

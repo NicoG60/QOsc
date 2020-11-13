@@ -2,9 +2,9 @@
 #define QOSCBLOB_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCBlob : public QOSCAbstractType
+class QOSC_EXPORT QOSCBlob : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCBlob, QOSC::BlobType);

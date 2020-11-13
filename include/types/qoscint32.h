@@ -2,14 +2,13 @@
 #define QOSCINT32_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
-#include "qosctypehelper.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCInt32 : public QOSCAbstractType
+class QOSC_EXPORT QOSCInt32 : public QOSCValue
 {
 protected:
-    QOSCInt32(QOSC::Type t) : QOSCAbstractType(t) {}
-    QOSCInt32(qint32 i, QOSC::Type t) : QOSCAbstractType(t), _i(i) {}
+    QOSCInt32(QOSC::Type t) : QOSCValue(t) {}
+    QOSCInt32(qint32 i, QOSC::Type t) : QOSCValue(t), _i(i) {}
 
 public:
     QOSC_TYPE_CTOR(QOSCInt32, QOSC::Int32Type);

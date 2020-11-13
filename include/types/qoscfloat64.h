@@ -2,10 +2,9 @@
 #define QOSCFLOAT64_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
-#include "qosctypehelper.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCFloat64 : public QOSCAbstractType
+class QOSC_EXPORT QOSCFloat64 : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCFloat64, QOSC::Float64Type);

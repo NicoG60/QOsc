@@ -1,12 +1,13 @@
 HEADERS += \
     $$PWD/QOSC_global.h \
     $$PWD/qosc.h \
+    $$PWD/types/qoschelper.h \
     $$PWD/qoscbundle.h \
     $$PWD/qoscinterface.h \
     $$PWD/qoscmessage.h \
     $$PWD/qoscmethod.h \
     $$PWD/qoscpacket.h \
-    $$PWD/types/qoscabstracttype.h \
+    $$PWD/types/qoscvalue.h \
     $$PWD/types/qosccolor.h \
     $$PWD/types/qoscfloat32.h \
     $$PWD/types/qoscint32.h \
@@ -19,7 +20,6 @@ HEADERS += \
     $$PWD/types/qosctimetag.h \
     $$PWD/types/qoscfloat64.h \
     $$PWD/types/qoscchar.h \
-    $$PWD/types/qosctypehelper.h \
     $$PWD/types/qosctypes.h
 
 INCLUDEPATH += $$PWD

@@ -2,15 +2,15 @@
 #define QOSCMIDI_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCMidi : public QOSCAbstractType
+class QOSC_EXPORT QOSCMidi : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCMidi, QOSC::MidiType);
 
     constexpr inline QOSCMidi(qint8 p, qint8 s, qint8 d1, qint8 d2) :
-        QOSCAbstractType(QOSC::MidiType),
+        QOSCValue(QOSC::MidiType),
         port(p),
         status(s),
         data1(d1),

@@ -3,8 +3,8 @@
 
 #include "QOSC_global.h"
 #include "qoscpacket.h"
-#include "types/qoscabstracttype.h"
-#include "types/qosctypehelper.h"
+#include "types/qoscvalue.h"
+#include "qoschelper.h"
 #include <QString>
 #include <QRegularExpression>
 
@@ -24,13 +24,13 @@ public:
     QOSCMessage(const QString& pattern, const T& arg) :
         QOSCPacket(OSCMessage),
         pattern(pattern),
-        args({ QOSC::make(arg) })
+        args({ QOSC::makeValue(arg) })
     {
         compilePattern();
     }
 
     template<>
-    QOSCMessage(const QString& pattern, const QOSCAbstractType::ptr& arg) :
+    QOSCMessage(const QString& pattern, const QOSCValue::ptr& arg) :
         QOSCPacket(OSCMessage),
         pattern(pattern),
         args({ arg })
@@ -41,7 +41,7 @@ public:
     QOSCMessage(const QString& pattern, qint8 p, qint8 s, qint8 d1, qint8 d2) :
         QOSCPacket(OSCMessage),
         pattern(pattern),
-        args({ QOSC::make(p, s, d1, d2) })
+        args({ QOSC::makeValue(p, s, d1, d2) })
     {
         compilePattern();
     }
@@ -62,7 +62,7 @@ protected:
     {
         auto a = new T;
         a->readData(dev);
-        args.append(QOSCAbstractType::ptr(a));
+        args.append(QOSCValue::ptr(a));
     }
 
     void compilePattern();
@@ -71,7 +71,7 @@ protected:
 
 public:
     QString pattern;
-    QOSCAbstractType::list args;
+    QOSCValue::list args;
 };
 
 #endif // QOSCMESSAGE_H

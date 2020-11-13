@@ -23,17 +23,17 @@ public:
     ~types();
 
     template<class F, class T>
-    void test_ctor(QOSCAbstractType* obj, F fp, T value1, T value2)
+    void test_ctor(QOSCValue* obj, F fp, T value1, T value2)
     {
         QCOMPARE((obj->*fp)(), value1);
         *obj = value2;
         QCOMPARE((obj->*fp)(), value2);
     }
 
-    void test_tag(QOSCAbstractType* obj, char t);
+    void test_tag(QOSCValue* obj, char t);
 
     template<class T>
-    void test_write(QOSCAbstractType* obj, T value, const QByteArray& comp)
+    void test_write(QOSCValue* obj, T value, const QByteArray& comp)
     {
         *obj = value;
 
@@ -48,7 +48,7 @@ public:
     }
 
     template<class F, class T>
-    void test_read(QOSCAbstractType* obj, const QByteArray& data, F fp, T value)
+    void test_read(QOSCValue* obj, const QByteArray& data, F fp, T value)
     {
         QBuffer b;
         b.setData(data);
@@ -86,7 +86,7 @@ types::types() {}
 
 types::~types() {}
 
-void types::test_tag(QOSCAbstractType* obj, char t)
+void types::test_tag(QOSCValue* obj, char t)
 {
     QByteArray data;
     QBuffer b(&data);
@@ -104,85 +104,85 @@ void types::test_int32()
 {
     QOSCInt32 i32(5);
 
-    test_ctor(&i32, &QOSCAbstractType::toInt32, 5, 3);
+    test_ctor(&i32, &QOSCValue::toInt32, 5, 3);
 
     test_tag(&i32, 'i');
     test_write(&i32, 3, QByteArray("\0\0\0\3", 4));
-    test_read(&i32, QByteArray("\0\0\0\xFF", 4), &QOSCAbstractType::toInt32, 255);
+    test_read(&i32, QByteArray("\0\0\0\xFF", 4), &QOSCValue::toInt32, 255);
 }
 
 void types::test_int64()
 {
     QOSCInt64 i64(5ll);
 
-    test_ctor(&i64, &QOSCAbstractType::toInt64, 5ll, 3ll);
+    test_ctor(&i64, &QOSCValue::toInt64, 5ll, 3ll);
 
     test_tag(&i64, 'h');
     test_write(&i64, 3ll, QByteArray("\0\0\0\0\0\0\0\x03", 8));
-    test_read(&i64, QByteArray("\0\0\0\0\0\0\0\xFF", 8), &QOSCAbstractType::toInt64, 255ll);
+    test_read(&i64, QByteArray("\0\0\0\0\0\0\0\xFF", 8), &QOSCValue::toInt64, 255ll);
 }
 
 void types::test_float32()
 {
     QOSCFloat32 f32(5.5f);
 
-    test_ctor(&f32, &QOSCAbstractType::toFloat32, 5.5f, 3.0f);
+    test_ctor(&f32, &QOSCValue::toFloat32, 5.5f, 3.0f);
 
     test_tag(&f32, 'f');
     test_write(&f32, 1.0f, QByteArray("\x3F\x80\0\0", 4));
-    test_read(&f32, QByteArray("\x3F\x80\0\0", 4), &QOSCAbstractType::toFloat32, 1.0f);
+    test_read(&f32, QByteArray("\x3F\x80\0\0", 4), &QOSCValue::toFloat32, 1.0f);
 }
 
 void types::test_float64()
 {
     QOSCFloat64 f64(5.5);
 
-    test_ctor(&f64, &QOSCAbstractType::toFloat32, 5.5, 3.0);
+    test_ctor(&f64, &QOSCValue::toFloat32, 5.5, 3.0);
 
     test_tag(&f64, 'd');
     test_write(&f64, 1.0, QByteArray("\x3F\xF0\0\0\0\0\0\0", 8));
-    test_read(&f64, QByteArray("\x3F\xF0\0\0\0\0\0\0", 8), &QOSCAbstractType::toFloat32, 1.0);
+    test_read(&f64, QByteArray("\x3F\xF0\0\0\0\0\0\0", 8), &QOSCValue::toFloat32, 1.0);
 }
 
 void types::test_string()
 {
     QOSCString str("test1");
 
-    test_ctor(&str, &QOSCAbstractType::toString, QString("test1"), QString("test2"));
+    test_ctor(&str, &QOSCValue::toString, QString("test1"), QString("test2"));
 
     test_tag(&str, 's');
     test_write(&str, QString("osc"), QByteArray("osc\0", 4));
     test_write(&str, QString("data"), QByteArray("data\0\0\0\0", 8));
-    test_read(&str, QByteArray("osc\0", 4), &QOSCAbstractType::toString, "osc");
-    test_read(&str, QByteArray("data\0\0\0\0", 8), &QOSCAbstractType::toString, "data");
+    test_read(&str, QByteArray("osc\0", 4), &QOSCValue::toString, "osc");
+    test_read(&str, QByteArray("data\0\0\0\0", 8), &QOSCValue::toString, "data");
 }
 
 void types::test_symbol()
 {
     QOSCSymbol str("test1");
 
-    test_ctor(&str, &QOSCAbstractType::toString, QString("test1"), QString("test2"));
+    test_ctor(&str, &QOSCValue::toString, QString("test1"), QString("test2"));
 
     test_tag(&str, 'S');
     test_write(&str, QString("osc"), QByteArray("osc\0", 4));
     test_write(&str, QString("data"), QByteArray("data\0\0\0\0", 8));
-    test_read(&str, QByteArray("osc\0", 4), &QOSCAbstractType::toString, "osc");
-    test_read(&str, QByteArray("data\0\0\0\0", 8), &QOSCAbstractType::toString, "data");
+    test_read(&str, QByteArray("osc\0", 4), &QOSCValue::toString, "osc");
+    test_read(&str, QByteArray("data\0\0\0\0", 8), &QOSCValue::toString, "data");
 }
 
 void types::test_blob()
 {
     QOSCBlob blob("test1");
 
-    test_ctor(&blob, &QOSCAbstractType::toByteArray, QByteArray("test1"), QByteArray("test2"));
+    test_ctor(&blob, &QOSCValue::toByteArray, QByteArray("test1"), QByteArray("test2"));
 
     test_tag(&blob, 'b');
     test_write(&blob, QByteArray("osc"), QByteArray("\0\0\0\x04osc\0", 8));
     test_write(&blob, QByteArray("data"), QByteArray("\0\0\0\x04""data", 8));
     test_write(&blob, QByteArray("data1"), QByteArray("\0\0\0\x08""data1\0\0\0", 12));
-    test_read(&blob, QByteArray("\0\0\0\x04osc\0", 8), &QOSCAbstractType::toString, QByteArray("osc\0", 4));
-    test_read(&blob, QByteArray("\0\0\0\x04""data", 8), &QOSCAbstractType::toString, QByteArray("data", 4));
-    test_read(&blob, QByteArray("\0\0\0\x08""data1\0\0\0", 12), &QOSCAbstractType::toString, QByteArray("data1\0\0\0", 8));
+    test_read(&blob, QByteArray("\0\0\0\x04osc\0", 8), &QOSCValue::toString, QByteArray("osc\0", 4));
+    test_read(&blob, QByteArray("\0\0\0\x04""data", 8), &QOSCValue::toString, QByteArray("data", 4));
+    test_read(&blob, QByteArray("\0\0\0\x08""data1\0\0\0", 12), &QOSCValue::toString, QByteArray("data1\0\0\0", 8));
 }
 
 void types::test_timetag()
@@ -191,13 +191,13 @@ void types::test_timetag()
 
     QCOMPARE(time.toUint64(), 0ul);
 
-    test_ctor(&time, &QOSCAbstractType::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0)), QDateTime(QDate(1970, 1, 1), QTime(10, 0, 0, 10)));
+    test_ctor(&time, &QOSCValue::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0)), QDateTime(QDate(1970, 1, 1), QTime(10, 0, 0, 10)));
 
     test_tag(&time, 't');
 
     QVERIFY(QOSCTimeTag::asap().isNow());
 
-    test_read(&time, QByteArray("\0\0\0\x04\0\0\0\0", 8), &QOSCAbstractType::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0, 4)));
+    test_read(&time, QByteArray("\0\0\0\x04\0\0\0\0", 8), &QOSCValue::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0, 4)));
 
     QCOMPARE(time.toUint64(), 4ul << 32);
 }
@@ -206,22 +206,22 @@ void types::test_char()
 {
     QOSCChar c('A');
 
-    test_ctor(&c, &QOSCAbstractType::toChar, '\x41', '0');
+    test_ctor(&c, &QOSCValue::toChar, '\x41', '0');
 
     test_tag(&c, 'c');
     test_write(&c, ' ', QByteArray("\0\0\0\x20", 4));
-    test_read(&c, QByteArray("\0\0\0\x20", 4), &QOSCAbstractType::toChar, ' ');
+    test_read(&c, QByteArray("\0\0\0\x20", 4), &QOSCValue::toChar, ' ');
 }
 
 void types::test_color()
 {
     QOSCColor color(QColor(255, 0, 0));
 
-    test_ctor(&color, &QOSCAbstractType::toColor, QColor(Qt::red), QColor("#0000FF00"));
+    test_ctor(&color, &QOSCValue::toColor, QColor(Qt::red), QColor("#0000FF00"));
 
     test_tag(&color, 'r');
     test_write(&color, QColor(Qt::green), QByteArray("\0\xFF\0\xFF", 4));
-    test_read(&color, QByteArray("\0\0\xFF\xFF", 4), &QOSCAbstractType::toColor, QColor(Qt::blue));
+    test_read(&color, QByteArray("\0\0\xFF\xFF", 4), &QOSCValue::toColor, QColor(Qt::blue));
 }
 
 void types::test_midi()

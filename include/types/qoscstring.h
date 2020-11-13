@@ -2,15 +2,15 @@
 #define QOSCSTRING_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 #include <QString>
 
-class QOSC_EXPORT QOSCString : public QOSCAbstractType
+class QOSC_EXPORT QOSCString : public QOSCValue
 {
 protected:
-    QOSCString(QOSC::Type t) : QOSCAbstractType(t) {}
-    QOSCString(const QString& str, QOSC::Type t) : QOSCAbstractType(t), _str(str) {}
-    QOSCString(QString&& str, QOSC::Type t) : QOSCAbstractType(t), _str(str) {}
+    QOSCString(QOSC::Type t) : QOSCValue(t) {}
+    QOSCString(const QString& str, QOSC::Type t) : QOSCValue(t), _str(str) {}
+    QOSCString(QString&& str, QOSC::Type t) : QOSCValue(t), _str(str) {}
 
 public:
     QOSC_TYPE_CTOR(QOSCString, QOSC::StringType);

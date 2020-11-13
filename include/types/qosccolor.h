@@ -2,10 +2,10 @@
 #define QOSCCOLOR_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
+#include "qoscvalue.h"
 #include <QColor>
 
-class QOSC_EXPORT QOSCColor : public QOSCAbstractType
+class QOSC_EXPORT QOSCColor : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCColor, QOSC::ColorType);

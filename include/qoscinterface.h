@@ -18,15 +18,15 @@ public:
     inline QHostAddress remoteAddr() const { return _remoteAddr; }
     void setRemoteAddr(const QHostAddress& addr);
 
-    inline quint16 remotePort() const;
+    inline quint16 remotePort() const { return _remotePort; }
     void setRemotePort(quint16 p);
 
-    inline QHostAddress localAddr() const;
+    inline QHostAddress localAddr() const { return _localAddr; }
 
-    inline quint16 localPort() const;
+    inline quint16 localPort() const { return _localPort; }
     void setLocalPort(quint16 p);
 
-    inline bool isListening() const;
+    inline bool isListening() const { return _isListening; }
 
     void connect(const QString& addr, QObject* obj, const char* slot);
 
@@ -47,7 +47,7 @@ public:
     }
 
     template<>
-    void send(const QString& pattern, const QOSCAbstractType::ptr& arg)
+    void send(const QString& pattern, const QOSCValue::ptr& arg)
     {
         QOSCMessage msg(pattern, arg);
         send(msg);
@@ -61,7 +61,7 @@ public slots:
     void send(const QOSCBundle& b);
 
 signals:
-    void remoteAddrchanged(const QHostAddress& addr);
+    void remoteAddrChanged(const QHostAddress& addr);
     void remotePortChanged(quint16 port);
 
     void localAddrChanged(const QHostAddress& addr);
@@ -77,9 +77,12 @@ protected:
 
 protected slots:
     void readReady();
-    void processPacket(const QOSCPacket::ptr& p, QOSCTimeTag* time = nullptr);
+    void processPacket(const QOSCPacket::ptr& p, const QOSCTimeTag* time = nullptr);
+
     void processMessage(const QOSCMessage::ptr& msg);
-    void processBundle(const QOSCBundle::ptr& b, QOSCTimeTag *time);
+
+    void processBundle(const QOSCBundle::ptr& b, const QOSCTimeTag *time);
+    void executeBundle(const QOSCBundle::ptr& b, const QOSCTimeTag *time);
 
 protected:
     QHostAddress _remoteAddr;
@@ -93,5 +96,7 @@ protected:
 
     QUdpSocket _s;
 };
+
+Q_DECLARE_METATYPE(QHostAddress);
 
 #endif // QOSCINTERFACE_H

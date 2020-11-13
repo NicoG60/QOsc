@@ -2,10 +2,9 @@
 #define QOSCFLOAT32_H
 
 #include "QOSC_global.h"
-#include "qoscabstracttype.h"
-#include "qosctypehelper.h"
+#include "qoscvalue.h"
 
-class QOSC_EXPORT QOSCFloat32 : public QOSCAbstractType
+class QOSC_EXPORT QOSCFloat32 : public QOSCValue
 {
 public:
     QOSC_TYPE_CTOR(QOSCFloat32, QOSC::Float32Type);

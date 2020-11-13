@@ -1,8 +1,8 @@
-#ifndef QOSCABSTRACTTYPE_H
-#define QOSCABSTRACTTYPE_H
+#ifndef QOSCVALUE_H
+#define QOSCVALUE_H
 
 #include "QOSC_global.h"
-#include "qosctypehelper.h"
+#include <qoschelper.h>
 #include <QIODevice>
 #include <QSharedPointer>
 #include <QColor>
@@ -23,12 +23,12 @@
 #define QOSC_ACCESS_IMPL_CAST(FType, Type, Var) QOSC_ACCESS_IMPL_IO(FType, Type, Var = static_cast<Type>(v), static_cast<Type>(Var))
 
 #define QOSC_OPERATOR(FType, Type) \
-    QOSCAbstractType& operator =(Type value) { from##FType(value); return *this; }
+    QOSCValue& operator =(Type value) { from##FType(value); return *this; }
 
 #define QOSC_DERIVED_OPERATOR_BASE(Class, Base, Type) \
     Class& operator =(Type value) { Base::operator =(value); return *this; }
 
-#define QOSC_DERIVED_OPERATOR(Class, Type) QOSC_DERIVED_OPERATOR_BASE(Class, QOSCAbstractType, Type)
+#define QOSC_DERIVED_OPERATOR(Class, Type) QOSC_DERIVED_OPERATOR_BASE(Class, QOSCValue, Type)
 
 #define QOSC_TYPE_CTOR_BASE(Class, Base, Type) \
     Class() : Base(Type) {} \
@@ -37,27 +37,27 @@
     Class& operator=(const Class& i) = default; \
     Class& operator=(Class&& i) = default;
 
-#define QOSC_TYPE_CTOR(Class, Type) QOSC_TYPE_CTOR_BASE(Class, QOSCAbstractType, Type)
+#define QOSC_TYPE_CTOR(Class, Type) QOSC_TYPE_CTOR_BASE(Class, QOSCValue, Type)
 
 #define QOSC_TYPE_DATA_CTOR_BASE(Class, Base, OSCType, FType, Type)\
     Class(Type value) : Base(OSCType) { from##FType(value); }
 
-#define QOSC_TYPE_DATA_CTOR(Class, OSCType, FType, Type) QOSC_TYPE_DATA_CTOR_BASE(Class, QOSCAbstractType, OSCType, FType, Type)
+#define QOSC_TYPE_DATA_CTOR(Class, OSCType, FType, Type) QOSC_TYPE_DATA_CTOR_BASE(Class, QOSCValue, OSCType, FType, Type)
 
-class QOSC_EXPORT QOSCAbstractType
+class QOSC_EXPORT QOSCValue
 {
 public:
-    typedef QSharedPointer<QOSCAbstractType> ptr;
+    typedef QSharedPointer<QOSCValue> ptr;
     typedef QList<ptr> list;
 
 public:
-    constexpr QOSCAbstractType(QOSC::Type t) : type(t) {}
-    constexpr QOSCAbstractType(const QOSCAbstractType&) = default;
-    constexpr QOSCAbstractType(QOSCAbstractType&&) = default;
-    virtual ~QOSCAbstractType() {};
+    constexpr QOSCValue(QOSC::Type t) : type(t) {}
+    constexpr QOSCValue(const QOSCValue&) = default;
+    constexpr QOSCValue(QOSCValue&&) = default;
+    virtual ~QOSCValue() {};
 
-    QOSCAbstractType& operator=(const QOSCAbstractType&) { return *this; }
-    QOSCAbstractType& operator=(QOSCAbstractType&&) { return *this; }
+    QOSCValue& operator=(const QOSCValue&) { return *this; }
+    QOSCValue& operator=(QOSCValue&&) { return *this; }
 
     virtual void writeTypeTag(QIODevice* dev) const = 0;
     virtual void writeData(QIODevice*) const {}
@@ -108,7 +108,7 @@ public:
     const QOSC::Type type;
 };
 
-Q_DECLARE_METATYPE(QOSCAbstractType::ptr)
-Q_DECLARE_METATYPE(QOSCAbstractType::list)
+Q_DECLARE_METATYPE(QOSCValue::ptr)
+Q_DECLARE_METATYPE(QOSCValue::list)
 
-#endif // QOSCABSTRACTTYPE_H
+#endif // QOSCVALUE_H

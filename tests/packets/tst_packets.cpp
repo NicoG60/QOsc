@@ -178,7 +178,7 @@ void packets::test_bundle()
 
     auto b4 = b3->elements[1].dynamicCast<QOSCBundle>();
 
-    QCOMPARE(b4->time.toUint64(), 1);
+    QCOMPARE(b4->time.toUint64(), 1ull);
 
     QCOMPARE(b4->elements.size(), 1);
 
