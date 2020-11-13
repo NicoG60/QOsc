@@ -43,7 +43,7 @@ public:
     inline void readData(QIODevice* dev) override { QOSC::readHelper(dev, &_t); }
 
 private:
-    quint64 _t = {};
+    quint64 _t = 1;
 };
 
 #endif // QOSCTIMETAG_H

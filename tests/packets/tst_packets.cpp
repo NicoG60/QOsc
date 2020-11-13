@@ -34,7 +34,7 @@ void packets::test_message()
 
     QVERIFY(msg.isValid());
 
-    QVERIFY(msg.args.size() == 1);
+    QVERIFY(msg.size() == 1);
 
     auto a = msg.args[0];
     auto i = a.dynamicCast<QOSCInt32>();
@@ -53,8 +53,8 @@ void packets::test_message()
     auto msg2 = packet.dynamicCast<QOSCMessage>();
 
     QCOMPARE(msg2->pattern, "/a/b/c");
-    QCOMPARE(msg2->args[0]->type, QOSC::Int32Type);
-    QCOMPARE(msg2->args[0]->toInt(), 10);
+    QCOMPARE(msg2->valueType(), QOSC::Int32Type);
+    QCOMPARE(msg2->toInt(), 10);
 }
 
 void packets::test_match_data()
@@ -164,31 +164,31 @@ void packets::test_bundle()
 
     QCOMPARE(b3->time.toUint64(), 1ul);
 
-    QCOMPARE(b3->elements.size(), 2);
+    QCOMPARE(b3->size(), 2);
 
-    QCOMPARE(b3->elements[0]->type, QOSCPacket::OSCMessage);
+    QCOMPARE(b3->first()->type, QOSCPacket::OSCMessage);
 
-    auto msg2 = b3->elements[0].dynamicCast<QOSCMessage>();
+    auto msg2 = b3->first().dynamicCast<QOSCMessage>();
 
     QCOMPARE(msg2->pattern, "/a/b/c");
-    QCOMPARE(msg2->args[0]->type, QOSC::Int32Type);
-    QCOMPARE(msg2->args[0]->toInt(), 10);
+    QCOMPARE(msg2->valueType(), QOSC::Int32Type);
+    QCOMPARE(msg2->toInt(), 10);
 
-    QCOMPARE(b3->elements[1]->type, QOSCPacket::OSCBundle);
+    QCOMPARE(b3->last()->type, QOSCPacket::OSCBundle);
 
-    auto b4 = b3->elements[1].dynamicCast<QOSCBundle>();
+    auto b4 = b3->last().dynamicCast<QOSCBundle>();
 
     QCOMPARE(b4->time.toUint64(), 1ull);
 
-    QCOMPARE(b4->elements.size(), 1);
+    QCOMPARE(b4->size(), 1);
 
-    QCOMPARE(b4->elements[0]->type, QOSCPacket::OSCMessage);
+    QCOMPARE(b4->first()->type, QOSCPacket::OSCMessage);
 
-    auto msg3 = b4->elements[0].dynamicCast<QOSCMessage>();
+    auto msg3 = b4->first().dynamicCast<QOSCMessage>();
 
     QCOMPARE(msg3->pattern, "/a/b/c");
-    QCOMPARE(msg3->args[0]->type, QOSC::Int32Type);
-    QCOMPARE(msg3->args[0]->toInt(), 10);
+    QCOMPARE(msg3->valueType(), QOSC::Int32Type);
+    QCOMPARE(msg3->toInt(), 10);
 }
 
 QTEST_APPLESS_MAIN(packets)

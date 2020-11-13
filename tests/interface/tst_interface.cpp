@@ -21,6 +21,11 @@ private slots:
     void test_connect_dispatch();
     void test_time_bundle();
 
+    // These guyes are just here tot est if the examples in the README actually
+    // build
+    void test_readme_server();
+    void test_readme_client();
+
 public:
     void verify_send(QByteArray comp);
     void send(QByteArray comp);
@@ -124,31 +129,31 @@ void interface::test_receive()
 
         QCOMPARE(b3->time.toUint64(), 1ul);
 
-        QCOMPARE(b3->elements.size(), 2);
+        QCOMPARE(b3->size(), 2);
 
-        QCOMPARE(b3->elements[0]->type, QOSCPacket::OSCMessage);
+        QCOMPARE(b3->first()->type, QOSCPacket::OSCMessage);
 
-        auto msg2 = b3->elements[0].dynamicCast<QOSCMessage>();
+        auto msg2 = b3->first().dynamicCast<QOSCMessage>();
 
         QCOMPARE(msg2->pattern, "/a/b/c");
-        QCOMPARE(msg2->args[0]->type, QOSC::Int32Type);
-        QCOMPARE(msg2->args[0]->toInt(), 10);
+        QCOMPARE(msg2->valueType(), QOSC::Int32Type);
+        QCOMPARE(msg2->toInt(), 10);
 
-        QCOMPARE(b3->elements[1]->type, QOSCPacket::OSCBundle);
+        QCOMPARE(b3->last()->type, QOSCPacket::OSCBundle);
 
-        auto b4 = b3->elements[1].dynamicCast<QOSCBundle>();
+        auto b4 = b3->last().dynamicCast<QOSCBundle>();
 
         QCOMPARE(b4->time.toUint64(), 1ull);
 
-        QCOMPARE(b4->elements.size(), 1);
+        QCOMPARE(b4->size(), 1);
 
-        QCOMPARE(b4->elements[0]->type, QOSCPacket::OSCMessage);
+        QCOMPARE(b4->first()->type, QOSCPacket::OSCMessage);
 
-        auto msg3 = b4->elements[0].dynamicCast<QOSCMessage>();
+        auto msg3 = b4->first().dynamicCast<QOSCMessage>();
 
         QCOMPARE(msg3->pattern, "/a/b/c");
-        QCOMPARE(msg3->args[0]->type, QOSC::Int32Type);
-        QCOMPARE(msg3->args[0]->toInt(), 10);
+        QCOMPARE(msg3->valueType(), QOSC::Int32Type);
+        QCOMPARE(msg3->toInt(), 10);
     }
 }
 
@@ -208,6 +213,85 @@ void interface::test_time_bundle()
 
     QVERIFY(QTest::qWaitFor([&](){ return abc > 2; }, 11000));
     qDebug() << t.elapsed();
+}
+
+void interface::test_readme_server()
+{
+    // Bind the network interface so you can send and get messages
+    QOSCInterface iface;
+    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemotePort(9000);
+    iface.setLocalPort(8000);
+
+    // Connect callbacks to get notified of new messages
+    iface.connect("/my/osc/pattern",
+    [](const QOSCMessage::ptr& msg)
+    {
+        // This is the message callback
+        // It'll be called each time a message matching the
+        // pattern you set is received.
+
+        for(auto& arg : *msg)
+        {
+            if(arg->type != QOSC::Int32Type)
+                continue;
+
+            int i = arg->toInt();
+
+            // do stuff with i
+
+            Q_UNUSED(i);
+        }
+    });
+
+    // Alternatively you can use any QObject slots
+    QObject obj;
+    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOSCMessage::ptr& msg)));
+
+    // Or get all messages and dispatch them yourself
+    QObject dispatcher;
+    QObject::connect(&iface,      SIGNAL(packetReceived(const QOSCPacket::ptr& ptr)),
+                     &dispatcher, SLOT(dispatch(const QOSCPacket::ptr& ptr)));
+}
+
+void interface::test_readme_client()
+{
+    // Bind the network interface so you can send and get messages
+    QOSCInterface iface;
+    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemotePort(9000);
+    iface.setLocalPort(8000);
+
+    // Craft the message you want to send
+    auto msg = QOSCMessage::ptr::create("/my/osc/pattern", QString("Some random string"));
+
+    iface.send(msg);
+
+    // More complex messages with several values
+    auto myInt = QOSC::makeValue(10);
+    auto myMidi = QOSC::makeValue(/*port:   0       */ 0x00,
+                                  /*status: note on */ 0x90,
+                                  /*data1:  note A4 */ 0x45,
+                                  /*data2:  note vel*/ 0x10);
+    auto myColor = QOSC::makeValue(QColor(Qt::green));
+
+    auto msg2 = QOSCMessage::ptr::create("/my/osc/pattern");
+    *msg2 << myInt << myMidi << myColor;
+
+    iface.send(msg2);
+
+    // You can also create bundles
+    // They are useful to deliver several messages to different patterns
+    // They can also be timed, You can specify an absolute Date and Time when you want them to be executed
+
+    auto bundle = QOSCBundle::ptr::create();
+    bundle->time = QDateTime::currentDateTime().addSecs(15); // The bundle is for 15sec later
+    *bundle << QOSCMessage::ptr::create("/osc/pattern1", QString("Some random string"))
+            << QOSCMessage::ptr::create("/osc/pattern2", 125)
+            << QOSCMessage::ptr::create("/osc/pattern3", true)
+            << QOSCMessage::ptr::create("/osc/pattern4", 3.14);
+
+    iface.send(bundle);
 }
 
 void interface::verify_send(QByteArray comp)

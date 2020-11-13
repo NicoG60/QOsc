@@ -1,10 +1,167 @@
 # QOSC
-Qt based library for OSC protocol
+Qt based library that implement the OSC protocol
+
+## Table Of Content
+
+[TOC]
 
 ## Building
 
-*TODO*
+As simple as it seems
+
+```console
+$ mkdir build && cd build
+$ qmake .. && make
+```
+
+## QMAKE Integration
+
+A simple way to integrate it is to make a subdir project where the lib is build as part of the whole project and manage linking in individual projects.
+
+For example
+
+```qmake
+# ==== RootProject.pro
+
+TEMPLATE = subdirs
+
+SUBDIRS += \
+    src \
+    tests \
+    qosc
+
+# Points to source tree
+qosc.subdir = path/to/qosc
+
+# Manage dependencies
+tests.depends = src
+src.depends = qosc
+```
+
+```qmake
+# ==== src.pro
+
+# ...
+# ... All your sources, configs, etc...
+# ...
+
+# Link
+INCLUDEPATH += $$PWD/path/to/qosc/include
+LIBS += -L$$OUT_PWD/../qosc/lib -lQOSC
+```
 
 ## Usage
 
-*TODO*
+You can use the library for:
+
+- Convert, Read, Write OSC message to and from network byte stream
+- Use QOSCInterface to actually write and read from the network
+
+### Example of Server using QOSCInterface
+
+```cpp
+#include <QApplication>
+#include <qosc.h>
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+
+    // Bind the network interface so you can send and get messages
+    QOSCInterface iface;
+    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemotePort(9000);
+    iface.setLocalPort(8000);
+    
+    // Connect callbacks to get notified of new messages
+    iface.connect("/my/osc/pattern",
+    [](const QOSCMessage::ptr& msg)
+    {
+        // This is the message callback
+        // It'll be called each time a message matching the
+        // pattern you set is received.
+        
+        for(auto& arg : *msg)
+        {
+            if(arg->type != QOSC::Int32Type)
+                continue;
+            
+            int i = arg->toInt();
+            
+            // do stuff with i
+        }
+    });
+    
+    // Alternatively you can use any QObject slots
+    QObject obj;
+    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOSCMessage::ptr& msg)));
+    
+    // Or get all messages and dispatch them yourself
+    QObject dispatcher;
+    QObject::connect(&iface,      SIGNAL(packetReceived(const QOSCPacket::ptr& ptr)),
+                     &dispatcher, SLOT(dispatch(const QOSCPacket::ptr& ptr)));
+
+    return a.exec();
+}
+```
+
+### Exemple of Client using QOSCInterface
+
+```cpp
+#include <QApplication>
+#include <qosc.h>
+
+int main(int argc, char *argv[])
+{
+    QApplication a(argc, argv);
+
+    // Bind the network interface so you can send and get messages
+    QOSCInterface iface;
+    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemotePort(9000);
+    iface.setLocalPort(8000);
+    
+    // Craft the message you want to send
+    auto msg = QOSCMessage::ptr::create("/my/osc/pattern", QString("Some random string"));
+    
+    iface.send(msg);
+
+    // More complex messages with several values
+    auto myInt = QOSC::makeValue(10);
+    auto myMidi = QOSC::makeValue(/*port:   0       */ 0x00,
+                                  /*status: note on */ 0x90,
+                                  /*data1:  note A4 */ 0x45,
+                                  /*data2:  note vel*/ 0x10);
+    auto myColor = QOSC::makeValue(QColor(Qt::green));
+    
+    auto msg2 = QOSCMessage::ptr::create("/my/osc/pattern");
+    *msg2 << myInt << myMidi << myColor;
+    
+    iface.send(msg2);
+    
+    // You can also create bundles
+    // They are useful to deliver several messages to different patterns
+    // They can also be timed, You can specify an absolute Date and Time when you want them to be executed
+    
+    auto bundle = QOSCBundle::ptr::create();
+    bundle->time = QDateTime::currentDateTime().addSecs(15); // The bundle is for 15sec later
+    *bundle << QOSCMessage::ptr::create("/osc/pattern1", QString("Some random string"))
+            << QOSCMessage::ptr::create("/osc/pattern2", 125)
+        	<< QOSCMessage::ptr::create("/osc/pattern3", true)
+        	<< QOSCMessage::ptr::create("/osc/pattern4", 3.14);
+    
+    iface.send(bundle);
+    
+    return a.exec();
+}
+```
+
+### Example parsing OSC from an external source
+
+```cpp
+QOSCPacker::ptr parseOSC(const QByteArray& data)
+{
+    return QOSCPacket::read(data);
+}
+```
+
