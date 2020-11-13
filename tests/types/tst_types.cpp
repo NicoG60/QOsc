@@ -1,6 +1,18 @@
 #include <QtTest>
 
 #include <types/qosctypes.h>
+#include <QDebug>
+
+class QByteArrayTest : public QByteArray
+{
+public:
+    QByteArrayTest() : QByteArray() { qDebug() << "Default constructor of " << this; qDebug() << *this; }
+    QByteArrayTest(QByteArrayTest&& m) : QByteArray(m) { qDebug() << "Move constructor of " << this; qDebug() << *this; }
+    QByteArrayTest(const QByteArrayTest& c) : QByteArray(c) { qDebug() << "Copy constructor of " << this; qDebug() << *this; }
+    QByteArrayTest(int size, char c) : QByteArray(size, c) { qDebug() << "Fill constructor of " << this; qDebug() << *this; }
+    QByteArrayTest(const char* c, int size = -1) : QByteArray(c, size) { qDebug() << "Data constructor of " << this; qDebug() << *this; }
+    ~QByteArrayTest() { qDebug() << "Destructor constructor of " << this; }
+};
 
 class types : public QObject
 {
@@ -74,13 +86,13 @@ types::types() {}
 
 types::~types() {}
 
-void types::test_tag(QOSCAbstractType* value, char t)
+void types::test_tag(QOSCAbstractType* obj, char t)
 {
     QByteArray data;
     QBuffer b(&data);
     b.open(QIODevice::WriteOnly);
 
-    value->writeTypeTag(&b);
+    obj->writeTypeTag(&b);
 
     b.close();
 
@@ -114,7 +126,7 @@ void types::test_float32()
 {
     QOSCFloat32 f32(5.5f);
 
-    test_ctor(&f32, &QOSCAbstractType::toFloat32, 5.5f, 3.1f);
+    test_ctor(&f32, &QOSCAbstractType::toFloat32, 5.5f, 3.0f);
 
     test_tag(&f32, 'f');
     test_write(&f32, 1.0f, QByteArray("\x3F\x80\0\0", 4));
@@ -125,7 +137,7 @@ void types::test_float64()
 {
     QOSCFloat64 f64(5.5);
 
-    test_ctor(&f64, &QOSCAbstractType::toFloat32, 5.5, 3.1);
+    test_ctor(&f64, &QOSCAbstractType::toFloat32, 5.5, 3.0);
 
     test_tag(&f64, 'd');
     test_write(&f64, 1.0, QByteArray("\x3F\xF0\0\0\0\0\0\0", 8));
@@ -179,19 +191,13 @@ void types::test_timetag()
 
     QCOMPARE(time.toUint64(), 0ul);
 
-    time = QDateTime(QDate(1970, 1, 1), QTime(10, 0, 0, 10));
-
-    QCOMPARE(time.toDateTime(), QDateTime(QDate(1970, 1, 1), QTime(10, 0, 0, 10)));
+    test_ctor(&time, &QOSCAbstractType::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0)), QDateTime(QDate(1970, 1, 1), QTime(10, 0, 0, 10)));
 
     test_tag(&time, 't');
 
     QVERIFY(QOSCTimeTag::asap().isNow());
 
-    QBuffer b2;
-    b2.setData("\0\0\0\x04\0\0\0\0", 8);
-    b2.open(QIODevice::ReadOnly);
-
-    time.readData(&b2);
+    test_read(&time, QByteArray("\0\0\0\x04\0\0\0\0", 8), &QOSCAbstractType::toDateTime, QDateTime(QDate(1900, 1, 1), QTime(0, 0, 4)));
 
     QCOMPARE(time.toUint64(), 4ul << 32);
 }
@@ -200,7 +206,7 @@ void types::test_char()
 {
     QOSCChar c('A');
 
-    test_ctor(&c, &QOSCAbstractType::toChar, '\x31', '0');
+    test_ctor(&c, &QOSCAbstractType::toChar, '\x41', '0');
 
     test_tag(&c, 'c');
     test_write(&c, ' ', QByteArray("\0\0\0\x20", 4));
@@ -209,13 +215,13 @@ void types::test_char()
 
 void types::test_color()
 {
-    QOSCColor color("#FF0000");
+    QOSCColor color(QColor(255, 0, 0));
 
     test_ctor(&color, &QOSCAbstractType::toColor, QColor(Qt::red), QColor("#0000FF00"));
 
     test_tag(&color, 'r');
-    test_write(&color, QColor(Qt::green), QByteArray("\0\xFF\0\0", 4));
-    test_read(&color, QByteArray("\0\0\xFF\0", 4), &QOSCAbstractType::toColor, QColor(Qt::blue));
+    test_write(&color, QColor(Qt::green), QByteArray("\0\xFF\0\xFF", 4));
+    test_read(&color, QByteArray("\0\0\xFF\xFF", 4), &QOSCAbstractType::toColor, QColor(Qt::blue));
 }
 
 void types::test_midi()
@@ -249,7 +255,7 @@ void types::test_midi()
 
     QCOMPARE(midi.port, 0);
     QCOMPARE(midi.status, 0);
-    QCOMPARE(midi.data1, 255);
+    QCOMPARE(midi.data1, -1);
     QCOMPARE(midi.data2, 0);
 }
 

@@ -53,7 +53,7 @@ QSharedPointer<QOSCAbstractType> make(std::nullptr_t ptr = nullptr);
 template<class T>
 void writeHelper(QIODevice* dev, T v)
 {
-    qToBigEndian(v, &v);
+    v = qToBigEndian(v);
     qint64 tmp = dev->write(reinterpret_cast<const char*>(&v), sizeof (T));
     Q_ASSERT(tmp == sizeof (T));
 }
@@ -62,9 +62,10 @@ template<class T>
 void readHelper(QIODevice* dev, T* r)
 {
     Q_ASSERT(r);
-    qint64 tmp = dev->read(reinterpret_cast<char*>(r), sizeof (T));
-    Q_ASSERT(tmp == sizeof (T));
-    qFromBigEndian<T>(r, sizeof (T), r);
+    T tmp;
+    qint64 s = dev->read(reinterpret_cast<char*>(&tmp), sizeof (T));
+    Q_ASSERT(s == sizeof (T));
+    *r = qFromBigEndian(tmp);
 }
 
 }

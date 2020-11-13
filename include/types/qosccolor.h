@@ -22,7 +22,7 @@ public:
     {
         quint32 rgba = ((_c.red()   & 0xFF) << 24) +
                        ((_c.green() & 0xFF) << 16) +
-                       ((_c.blue()  & 0xFF) << 8)  +
+                       ((_c.blue()  & 0xFF) <<  8) +
                         (_c.alpha() & 0xFF);
         QOSC::writeHelper(dev, rgba);
     }
@@ -31,7 +31,7 @@ public:
     {
         quint32 rgba;
         QOSC::readHelper(dev, &rgba);
-        char r, g, b, a;
+        int r, g, b, a;
 
         r = (rgba >> 24) & 0xFF;
         g = (rgba >> 16) & 0xFF;

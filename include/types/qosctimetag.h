@@ -26,7 +26,7 @@ public:
 
     QOSC_ACCESS_IMPL_IO(Double, double, _t = (v >= 0 ? static_cast<quint64>(v*factor) : 1),
                                         _t/static_cast<double>(factor));
-    QOSC_ACCESS_IMPL_IO(DateTime, QDateTime, _t = (v.toMSecsSinceEpoch()/1000.0)+unix_to_ntp,
+    QOSC_ACCESS_IMPL_IO(DateTime, QDateTime, fromDouble((v.toMSecsSinceEpoch()/1000.0)+unix_to_ntp),
                                              QDateTime::fromMSecsSinceEpoch((toDouble() - unix_to_ntp)*1000))
 
     inline bool isNow() const { return (_t == 1ull); }

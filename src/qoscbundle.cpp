@@ -44,7 +44,9 @@ void QOSCBundle::load(QIODevice* dev)
 
     time.readData(dev);
 
-    while(dev->bytesAvailable() > 0)
+    // 5 is the minimum for a 4 byte size + 1 byte data
+    // anything below that is padding
+    while(dev->bytesAvailable() >= 5)
     {
         QOSCBlob blob;
         blob.readData(dev);
