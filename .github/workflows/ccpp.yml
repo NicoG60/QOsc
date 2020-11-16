@@ -37,7 +37,7 @@ jobs:
 
     - name: Clean
       run: |
-        rm ./.* -r -fo
+        rm ./.q* -r -fo
         rm ./tmp -r -fo
         rm ./Makefile -r -fo
       working-directory: build/src
@@ -81,7 +81,7 @@ jobs:
 
     - name: Clean
       run: |
-        rm -rf ./.*
+        rm -rf ./.q*
         rm -rf ./tmp
         rm -rf ./Makefile
       working-directory: build/src
