@@ -3,7 +3,7 @@
 
 #include "qoscmessage.h"
 
-class QOscMethod
+class QOSC_EXPORT QOscMethod
 {
 public:
     typedef QSharedPointer<QOscMethod> ptr;
@@ -16,7 +16,7 @@ public:
     const QString addr;
 };
 
-class QOscSlotMethod : public QOscMethod
+class QOSC_EXPORT QOscSlotMethod : public QOscMethod
 {
 public:
     QOscSlotMethod(const QString& addr, QObject* obj, const char* slot);

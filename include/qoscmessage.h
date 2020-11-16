@@ -16,7 +16,7 @@
 class QOscBundle;
 class QOscMessagePrivate;
 
-class QOscMessage : public QList<QOscValue>
+class QOSC_EXPORT QOscMessage : public QList<QOscValue>
 {
 public:
     QOscMessage();

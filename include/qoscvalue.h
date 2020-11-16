@@ -17,7 +17,7 @@
     bool is##FType() const;
 
 class QOscValuePrivate;
-class QOscValue
+class QOSC_EXPORT QOscValue
 {
     friend class QOscMessage;
     friend class QOscMessagePrivate;

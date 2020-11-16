@@ -2,7 +2,8 @@ QT = core gui network core_private
 
 TEMPLATE = lib
 
-CONFIG += staticlib c++11
+CONFIG += shared_and_static build_all c++11
+DEFINES += QOSC_LIBRARY
 
 TARGET = QOsc
 

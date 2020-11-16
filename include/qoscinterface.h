@@ -7,7 +7,7 @@
 #include <QHostAddress>
 
 class QOscInterfacePrivate;
-class QOscInterface :  public QObject
+class QOSC_EXPORT QOscInterface :  public QObject
 {
     Q_OBJECT
 

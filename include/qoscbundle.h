@@ -4,7 +4,7 @@
 #include "qoscmessage.h"
 
 class QOscBundlePrivate;
-class QOscBundle : public QList<QOscMessage>
+class QOSC_EXPORT QOscBundle : public QList<QOscMessage>
 {
 public:
     QOscBundle();
