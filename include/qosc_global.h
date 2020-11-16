@@ -17,9 +17,7 @@ class QIODevice;
 namespace QOsc
 {
 
-Q_NAMESPACE_EXPORT(QOSC_EXPORT);
-
-enum QOSC_EXPORT ValueType
+enum ValueType
 {
     //ArrayType,
     BlobType,
@@ -38,15 +36,13 @@ enum QOSC_EXPORT ValueType
     SymbolType,
     TimeTagType
 };
-Q_ENUM_NS(ValueType)
 
-enum QOSC_EXPORT PacketType
+enum PacketType
 {
     InvalidPacket,
     OscMessage,
     OscBundle
 };
-Q_ENUM_NS(PacketType)
 
 PacketType detectType(const QByteArray& data);
 PacketType detectType(QIODevice* dev);
