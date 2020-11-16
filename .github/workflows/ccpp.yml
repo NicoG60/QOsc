@@ -80,7 +80,7 @@ jobs:
     - name: Test
       run: make check
       env:
-        DYLD_LIBRARY_PATH: ${{ env.DYLD_LIBRARY_PATH }}:${{ github.workspace }}/build/src/lib
+        DYLD_LIBRARY_PATH: ${{ github.workspace }}/build/src/lib
       working-directory: build
 
     - name: Clean
