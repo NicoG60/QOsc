@@ -1,0 +1,6 @@
+#ifndef QOSCMETHOD
+#define QOSCMETHOD
+
+#include "qoscmethod.h"
+
+#endif // QOSCMETHOD

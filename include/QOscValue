@@ -1,0 +1,6 @@
+#ifndef QOSCVALUE
+#define QOSCVALUE
+
+#include "qoscvalue.h"
+
+#endif // QOSCVALUE

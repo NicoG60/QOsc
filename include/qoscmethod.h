@@ -3,25 +3,25 @@
 
 #include "qoscmessage.h"
 
-class QOSC_EXPORT QOSCMethod
+class QOSC_EXPORT QOscMethod
 {
 public:
-    typedef QSharedPointer<QOSCMethod> ptr;
+    typedef QSharedPointer<QOscMethod> ptr;
 
-    QOSCMethod(const QString& addr) : addr(addr) {};
-    virtual ~QOSCMethod() {};
+    QOscMethod(const QString& addr) : addr(addr) {};
+    virtual ~QOscMethod() {};
 
-    virtual void call(const QOSCMessage::ptr& msg) = 0;
+    virtual void call(const QOscMessage& msg) = 0;
 
     const QString addr;
 };
 
-class QOSC_EXPORT QOSCSlotMethod : public QOSCMethod
+class QOSC_EXPORT QOscSlotMethod : public QOscMethod
 {
 public:
-    QOSCSlotMethod(const QString& addr, QObject* obj, const char* slot);
+    QOscSlotMethod(const QString& addr, QObject* obj, const char* slot);
 
-    void call(const QOSCMessage::ptr& msg) override;
+    void call(const QOscMessage& msg) override;
 
 private:
     QObject*    _obj;
@@ -29,12 +29,12 @@ private:
 };
 
 template<class Func>
-class QOSC_EXPORT QOSCLambdaMethod : public QOSCMethod
+class QOSC_EXPORT QOscLambdaMethod : public QOscMethod
 {
 public:
-    QOSCLambdaMethod(const QString& addr, Func f) : QOSCMethod(addr), _f(f) {}
+    QOscLambdaMethod(const QString& addr, Func f) : QOscMethod(addr), _f(f) {}
 
-    inline void call(const QOSCMessage::ptr& msg) override { _f(msg); }
+    inline void call(const QOscMessage& msg) override { _f(msg); }
 
 private:
     Func _f;

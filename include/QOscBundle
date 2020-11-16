@@ -1,0 +1,6 @@
+#ifndef QOSCBUNDLE
+#define QOSCBUNDLE
+
+#include "qoscbundle.h"
+
+#endif // QOSCBUNDLE

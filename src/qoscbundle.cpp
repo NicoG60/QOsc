@@ -1,33 +1,33 @@
 #include <qoscbundle.h>
 #include <QBuffer>
-#include <types/qoscblob.h>
 
-bool QOSCBundle::isValid() const
+#include "qoscbundle_p.h"
+#include "qoscvalue_p.h"
+
+QOscBundlePrivate::QOscBundlePrivate(QOscBundle* q) :
+    q_ptr(q),
+    time(QOscValue::asap())
+{}
+
+void QOscBundlePrivate::write(QIODevice* dev) const
 {
-    if(time.toDateTime() < QDateTime::currentDateTime() && quint64(time) != 1)
-        return false;
+    Q_Q(const QOscBundle);
+    Q_ASSERT(q->isValid());
 
-    if(elements.isEmpty())
-        return false;
-
-    return true;
-}
-
-void QOSCBundle::write(QIODevice* dev) const
-{
     dev->write("#bundle");
 
-    time.writeData(dev);
+    time.d_ptr->writeData(dev);
 
     qint64 size = 7+8;
 
-    for(auto& e : elements)
+    for(auto& e : *q)
     {
-        size += 4;
-        QByteArray data = e->package();
+        QOscBlobPrivate blob;
+        blob.data = e.package();
 
-        QOSC::writeHelper(dev, static_cast<qint32>(data.size()));
-        size += dev->write(data);
+        size += 4 + blob.data.size();
+
+        blob.writeData(dev);
     }
 
     while(size % 4 != 0)
@@ -37,19 +37,181 @@ void QOSCBundle::write(QIODevice* dev) const
     }
 }
 
-void QOSCBundle::load(QIODevice* dev)
+void QOscBundlePrivate::load(QIODevice* dev)
 {
+    Q_Q(QOscBundle);
+
     if(dev->read(7) != "#bundle")
         return;
 
-    time.readData(dev);
+    q->clear();
+
+    time.d_ptr->readData(dev);
 
     // 5 is the minimum for a 4 byte size + 1 byte data
     // anything below that is padding
     while(dev->bytesAvailable() >= 5)
     {
-        QOSCBlob blob;
+        QOscBlobPrivate blob;
         blob.readData(dev);
-        elements << QOSCPacket::read(blob.toByteArray());
+
+        switch(QOsc::detectType(blob.data))
+        {
+        case QOsc::OscMessage:
+            *q << QOscMessage::read(blob.data);
+            break;
+
+        case QOsc::OscBundle:
+            *q << QOscBundle::read(blob.data);
+            break;
+
+        default:
+            break;
+        }
     }
+}
+
+
+
+// =============================================================================
+
+
+
+QOscBundle::QOscBundle() :
+    d_ptr(new QOscBundlePrivate(this))
+{}
+
+QOscBundle::QOscBundle(const QOscBundle& copy) :
+    QOscBundle()
+{
+    *this = copy;
+}
+
+QOscBundle::QOscBundle(QOscBundle&& move)
+{
+    swap(move);
+}
+
+QOscBundle::~QOscBundle() {}
+
+QOscBundle& QOscBundle::operator=(const QOscBundle& copy)
+{
+    QList<QOscMessage>::operator=(copy);
+    *d_ptr = *copy.d_ptr;
+    d_ptr->q_ptr = this;
+    return *this;
+}
+
+QOscBundle& QOscBundle::operator=(QOscBundle&& move)
+{
+    swap(move);
+    return *this;
+}
+
+void QOscBundle::swap(QOscBundle& other)
+{
+    QList<QOscMessage>::swap(other);
+    qSwap(d_ptr, other.d_ptr);
+
+    if(d_ptr)
+        d_ptr->q_ptr = this;
+
+    if(other.d_ptr)
+        other.d_ptr->q_ptr = &other;
+}
+
+bool QOscBundle::isValid() const
+{
+    if(!d_ptr->time.isTimeTag())
+        return false;
+
+    if(isEmpty())
+        return false;
+
+    for(auto& e : *this)
+    {
+        if(!e.isValid())
+            return false;
+    }
+
+    return true;
+}
+
+QOscValue QOscBundle::time() const
+{
+    return d_ptr->time;
+}
+
+void QOscBundle::setTime(const QOscValue& time)
+{
+    if(time.isTimeTag())
+        d_ptr->time = time;
+}
+
+QOscBundle& QOscBundle::operator <<(const QOscMessage& msg)
+{
+    QList<QOscMessage>::operator<<(msg);
+    return *this;
+}
+
+QOscBundle& QOscBundle::operator <<(const QOscBundle& other)
+{
+    QList<QOscMessage>::operator<<(other);
+    return *this;
+}
+
+QOscBundle& QOscBundle::operator +=(const QOscMessage& other)
+{
+    QList<QOscMessage>::operator +=(other);
+    return *this;
+}
+
+QOscBundle& QOscBundle::operator +=(const QOscBundle& other)
+{
+    QList<QOscMessage>::operator +=(other);
+    return *this;
+}
+
+QOscBundle QOscBundle::operator +(const QOscBundle& other) const
+{
+    QOscBundle b = *this;
+    b << other;
+    return b;
+}
+
+QOscMessage& QOscBundle::operator[](int i)
+{
+    return QList<QOscMessage>::operator [](i);
+}
+
+const QOscMessage& QOscBundle::operator[](int i) const
+{
+    return QList<QOscMessage>::operator [](i);
+}
+
+QByteArray QOscBundle::package() const
+{
+    QBuffer b;
+    b.open(QIODevice::WriteOnly);
+    package(&b);
+    return b.data();
+}
+
+void QOscBundle::package(QIODevice* dev) const
+{
+    d_ptr->write(dev);
+}
+
+QOscBundle QOscBundle::read(const QByteArray& data)
+{
+    QBuffer b(const_cast<QByteArray*>(&data));
+    b.open(QIODevice::ReadOnly);
+    return read(&b);
+}
+
+QOscBundle QOscBundle::read(QIODevice* dev)
+{
+    QOscBundle b;
+    b.d_ptr->load(dev);
+    return b;
 }

@@ -1,46 +1,53 @@
 #include <qoscmessage.h>
-#include <types/qosctypes.h>
+
+#include "qoscmessage_p.h"
+#include "qoscvalue_p.h"
+#include "qoscbundle.h"
+
 #include <QBuffer>
 
-bool QOSCMessage::isValid() const
-{
-    return _match.isValid();
-}
+QOscMessagePrivate::QOscMessagePrivate(QOscMessage* q) :
+    q_ptr(q)
+{}
 
-bool QOSCMessage::match(const QString& addr) const
+void QOscMessagePrivate::write(QIODevice* dev) const
 {
-    return _match.match(addr).hasMatch();
-}
+    Q_Q(const QOscMessage);
 
-void QOSCMessage::write(QIODevice* dev) const
-{
-    QOSCString address(pattern);
-    address.writeData(dev);
+    if(!q->isValid())
+        return;
+
+    QOscStringPrivate tmp;
+    tmp.str = pattern;
+    tmp.writeData(dev);
 
     QBuffer buf;
     buf.open(QIODevice::WriteOnly);
     buf.putChar(',');
 
-    for(auto& arg : args)
-        arg->writeTypeTag(&buf);
+    for(auto& arg : *q)
+        arg.d_ptr->writeTypeTag(&buf);
 
-    QOSCString tags(buf.buffer());
-    tags.writeData(dev);
+    tmp.str = QString::fromLatin1(buf.data());
+    tmp.writeData(dev);
 
-    for(auto& arg : args)
-        arg->writeData(dev);
+    for(auto& arg : *q)
+        arg.d_ptr->writeData(dev);
 }
 
-void QOSCMessage::load(QIODevice* dev)
+void QOscMessagePrivate::load(QIODevice* dev)
 {
-    QOSCString tmp;
+    Q_Q(QOscMessage);
+    q->clear();
+
+    QOscStringPrivate tmp;
 
     tmp.readData(dev);
-    pattern = tmp.toString();
+    pattern = tmp.str;
     compilePattern();
 
     tmp.readData(dev);
-    QString tmptags = tmp.toString();
+    QString tmptags = tmp.str;
 
     // does not support arrays yet
     static QRegularExpression reg(R"(^,[ifsbhtdScrmTFNI]*$)");
@@ -51,63 +58,63 @@ void QOSCMessage::load(QIODevice* dev)
             switch (t.toLatin1())
             {
             case 'i':
-                loadArg<QOSCInt32>(dev);
+                q->append(loadArg<QOscInt32Private>(dev));
                 break;
 
             case 'f':
-                loadArg<QOSCFloat32>(dev);
+                q->append(loadArg<QOscFloat32Private>(dev));
                 break;
 
             case 's':
-                loadArg<QOSCString>(dev);
+                q->append(loadArg<QOscStringPrivate>(dev));
                 break;
 
             case 'b':
-                loadArg<QOSCBlob>(dev);
+                q->append(loadArg<QOscBlobPrivate>(dev));
                 break;
 
             case 'h':
-                loadArg<QOSCInt64>(dev);
+                q->append(loadArg<QOscInt64Private>(dev));
                 break;
 
             case 't':
-                loadArg<QOSCTimeTag>(dev);
+                q->append(loadArg<QOscTimeTagPrivate>(dev));
                 break;
 
             case 'd':
-                loadArg<QOSCFloat64>(dev);
+                q->append(loadArg<QOscFloat64Private>(dev));
                 break;
 
             case 'S':
-                loadArg<QOSCSymbol>(dev);
+                q->append(loadArg<QOscSymbolPrivate>(dev));
                 break;
 
             case 'c':
-                loadArg<QOSCChar>(dev);
+                q->append(loadArg<QOscCharPrivate>(dev));
                 break;
 
             case 'r':
-                loadArg<QOSCColor>(dev);
+                q->append(loadArg<QOscColorPrivate>(dev));
                 break;
 
             case 'm':
-                loadArg<QOSCMidi>(dev);
+                q->append(loadArg<QOscMidiPrivate>(dev));
                 break;
 
             case 'T':
-                loadArg<QOSCTrue>(dev);
+                q->append(loadArg<QOscTruePrivate>(dev));
                 break;
 
             case 'F':
-                loadArg<QOSCFalse>(dev);
+                q->append(loadArg<QOscFalsePrivate>(dev));
                 break;
 
             case 'I':
-                loadArg<QOSCInfinitum>(dev);
+                q->append(loadArg<QOscInfinitumPrivate>(dev));
                 break;
 
             case 'N':
-                loadArg<QOSCNil>(dev);
+                q->append(loadArg<QOscNilPrivate>(dev));
                 break;
             }
         }
@@ -115,11 +122,11 @@ void QOSCMessage::load(QIODevice* dev)
     else
     {
         QByteArray data = dev->readAll();
-        args << QOSC::makeValue(data);
+        q->append(QOscValue(data));
     }
 }
 
-void QOSCMessage::compilePattern()
+void QOscMessagePrivate::compilePattern()
 {
     QString copy = pattern;
 
@@ -142,5 +149,158 @@ void QOSCMessage::compilePattern()
     copy.prepend('^');
     copy.append('$');
 
-    _match.setPattern(copy);
+    matcher.setPattern(copy);
+
+    if(!matcher.isValid())
+        pattern.clear();
+}
+
+
+
+// =============================================================================
+
+
+
+QOscMessage::QOscMessage() :
+    d_ptr(new QOscMessagePrivate(this))
+{}
+
+QOscMessage::QOscMessage(const QOscMessage& copy) :
+    QOscMessage()
+{
+    *this = copy;
+}
+
+QOscMessage::QOscMessage(QOscMessage&& move)
+{
+    swap(move);
+}
+
+QOscMessage::QOscMessage(const QString& pattern) :
+    QOscMessage()
+{
+    d_ptr->pattern = pattern;
+    d_ptr->compilePattern();
+}
+
+QOscMessage::~QOscMessage() {}
+
+QOscMessage& QOscMessage::operator=(const QOscMessage& copy)
+{
+    QList<QOscValue>::operator=(copy);
+    *d_ptr = *copy.d_ptr;
+    d_ptr->q_ptr = this;
+    return *this;
+}
+
+QOscMessage& QOscMessage::operator=(QOscMessage&& move)
+{
+    swap(move);
+    return *this;
+}
+
+void QOscMessage::swap(QOscMessage& other)
+{
+    QList<QOscValue>::swap(other);
+    qSwap(d_ptr, other.d_ptr);
+
+    if(d_ptr)
+        d_ptr->q_ptr = this;
+
+    if(other.d_ptr)
+        other.d_ptr->q_ptr = &other;
+}
+
+bool QOscMessage::isValid() const
+{
+    Q_D(const QOscMessage);
+    return !d->pattern.isEmpty() && d->matcher.isValid() && !isEmpty();
+}
+
+bool QOscMessage::match(const QString& addr) const
+{
+    return d_func()->matcher.match(addr).hasMatch();
+}
+
+QString QOscMessage::pattern() const
+{
+    return d_ptr->pattern;
+}
+
+QRegularExpression QOscMessage::matcher() const
+{
+    return d_ptr->matcher;
+}
+
+void QOscMessage::setPattern(const QString& p)
+{
+    Q_D(QOscMessage);
+    if(p != d->pattern)
+    {
+        d->pattern = p;
+        d->compilePattern();
+    }
+}
+
+QOscMessage& QOscMessage::operator <<(const QOscValue& v)
+{
+    QList<QOscValue>::operator <<(v);
+    return *this;
+}
+
+QOscMessage& QOscMessage::operator +=(const QOscValue& v)
+{
+    QList<QOscValue>::operator +=(v);
+    return *this;
+}
+
+QOscMessage QOscMessage::operator +(const QOscValue& v) const
+{
+    QOscMessage other = *this;
+    other += v;
+    return other;
+}
+
+QOscBundle QOscMessage::operator +(const QOscMessage& v) const
+{
+    QOscBundle b;
+    b << *this << v;
+    return b;
+}
+
+QOscValue& QOscMessage::operator[](int i)
+{
+    return QList<QOscValue>::operator [](i);
+}
+
+const QOscValue& QOscMessage::operator[](int i) const
+{
+    return QList<QOscValue>::operator [](i);
+}
+
+QByteArray QOscMessage::package() const
+{
+    QBuffer b;
+    b.open(QIODevice::WriteOnly);
+    package(&b);
+    return b.data();
+}
+
+void QOscMessage::package(QIODevice* dev) const
+{
+    d_ptr->write(dev);
+}
+
+QOscMessage QOscMessage::read(const QByteArray& data)
+{
+    QBuffer b(const_cast<QByteArray*>(&data));
+    b.open(QIODevice::ReadOnly);
+    return read(&b);
+}
+
+QOscMessage QOscMessage::read(QIODevice* dev)
+{
+    QOscMessage msg;
+    msg.d_ptr->load(dev);
+    return msg;
 }

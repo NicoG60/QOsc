@@ -1,0 +1,94 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+    - name: Get sources
+      uses: actions/checkout@v2
+
+    - name: Configure Windows env
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Get Qt
+      uses: jurplel/install-qt-action@v2.6.2
+      with:
+        modules: 'core gui network'
+
+    - name: Make build dir
+      run: mkdir build
+
+    - name: QMake
+      run: qmake ..
+      working-directory: build
+
+    - name: Make
+      run: nmake.exe
+      working-directory: build
+
+    - name: Test
+      run: nmake.exe check
+      working-directory: build
+
+    - name: Clean
+      run: |
+        rm -rf .*
+        rm -rf tmp
+        rm -rf Makefile
+      working-directory: build
+
+    - name: Upload
+      uses: actions/upload-artifact@v1
+      with:
+        name: release-windows
+        path: build/src
+
+
+
+
+
+  build-macos:
+    runs-on: macOS-latest
+
+    steps:
+    - name: Get sources
+      uses: actions/checkout@v2
+
+    - name: Get Qt
+      uses: jurplel/install-qt-action@v2.6.2
+      with:
+        modules: 'core gui network'
+
+    - name: Make build dir
+      run: mkdir build
+
+    - name: QMake
+      run: qmake ..
+      working-directory: build
+
+    - name: Make
+      run: make
+      working-directory: build
+
+    - name: Test
+      run: make check
+      working-directory: build
+
+    - name: Clean
+      run: |
+        rm -rf .*
+        rm -rf tmp
+        rm -rf Makefile
+      working-directory: build
+
+    - name: Upload
+      uses: actions/upload-artifact@v1
+      with:
+        name: release-macos
+        path: build/src
+      

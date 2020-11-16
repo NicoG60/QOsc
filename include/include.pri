@@ -1,25 +1,18 @@
 HEADERS += \
-    $$PWD/QOSC_global.h \
+    $$PWD/qosc_global.h \
     $$PWD/qosc.h \
-    $$PWD/types/qoschelper.h \
+    $$PWD/qoscvalue.h \
     $$PWD/qoscbundle.h \
     $$PWD/qoscinterface.h \
     $$PWD/qoscmessage.h \
     $$PWD/qoscmethod.h \
-    $$PWD/qoscpacket.h \
-    $$PWD/types/qoscvalue.h \
-    $$PWD/types/qosccolor.h \
-    $$PWD/types/qoscfloat32.h \
-    $$PWD/types/qoscint32.h \
-    $$PWD/types/qoscliterals.h \
-    $$PWD/types/qoscmidi.h \
-    $$PWD/types/qoscstring.h \
-    $$PWD/types/qoscsymbol.h \
-    $$PWD/types/qoscblob.h \
-    $$PWD/types/qoscint64.h \
-    $$PWD/types/qosctimetag.h \
-    $$PWD/types/qoscfloat64.h \
-    $$PWD/types/qoscchar.h \
-    $$PWD/types/qosctypes.h
+    $$PWD/QOsc \
+    $$PWD/QOscValue \
+    $$PWD/QOscBundle \
+    $$PWD/QOscInterface \
+    $$PWD/QOscMessage \
+    $$PWD/QOscMethod \
 
 INCLUDEPATH += $$PWD
+
+QMAKE_POST_LINK += $$QMAKE_COPY_DIR $$PWD $$OUT_PWD

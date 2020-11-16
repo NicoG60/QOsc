@@ -1,2 +1,2 @@
 INCLUDEPATH += $$PWD/../include
-LIBS += -L$$OUT_PWD/../../src/lib -lQOSC
+LIBS += -L$$OUT_PWD/../../src/lib -lQOsc

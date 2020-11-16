@@ -1,106 +1,71 @@
 #include <qoscinterface.h>
+#include <private/qobject_p.h>
 #include <QBuffer>
 #include <QNetworkDatagram>
 #include <QTimer>
 #include <QNetworkInterface>
+#include <QUdpSocket>
 
-QOSCInterface::QOSCInterface(QObject* parent) :
-    QObject(parent),
-    _remoteAddr("127.0.0.1"),
-    _remotePort(0),
-    _localAddr("127.0.0.1"),
-    _localPort(0)
+class QOscInterfacePrivate : public QObjectPrivate
 {
-    QObject::connect(&_s, &QAbstractSocket::readyRead, this, &QOSCInterface::readReady);
-    rebind();
+    Q_DECLARE_PUBLIC(QOscInterface);
+
+public:
+    QOscInterfacePrivate();
+
+    void rebind();
+    void updateLocalAddr();
+    void setLocalAddr(const QHostAddress& addr);
+    void send(const QByteArray& data);
+
+    void readReady();
+
+    void processMessage(const QOscMessage& msg);
+
+    void processBundle(const QOscBundle& b);
+    void executeBundle(const QOscBundle& b);
+
+    QHostAddress remoteAddr;
+    quint16      remotePort;
+    QHostAddress localAddr;
+    quint16      localPort;
+    QUdpSocket   socket;
+
+    bool isListening;
+
+    QList<QOscMethod::ptr> methods;
+};
+
+QOscInterfacePrivate::QOscInterfacePrivate() :
+    QObjectPrivate(),
+    remoteAddr("127.0.0.1"),
+    remotePort(0),
+    localAddr("127.0.0.1"),
+    localPort(0),
+    isListening(false)
+{
 }
 
-void QOSCInterface::setRemoteAddr(const QHostAddress& addr)
+void QOscInterfacePrivate::rebind()
 {
-    if(addr != _remoteAddr)
+    if(socket.isValid())
     {
-        _remoteAddr = addr;
-        remoteAddrChanged(addr);
-        updateLocalAddr();
+        socket.disconnectFromHost();
+
+        if(socket.state() != QAbstractSocket::UnconnectedState)
+            socket.waitForDisconnected();
+    }
+
+    isListening = socket.bind(localPort);
+
+    if(socket.localPort() != localPort)
+    {
+        localPort = socket.localPort();
+        q_func()->localPortChanged(localPort);
     }
 }
 
-void QOSCInterface::setRemotePort(quint16 p)
-{
-    if(p != _remotePort)
-    {
-        _remotePort = p;
-        remotePortChanged(p);
-    }
-}
-
-void QOSCInterface::setLocalPort(quint16 p)
-{
-    if(p != _localPort)
-    {
-        _localPort = p;
-        localPortChanged(p);
-        rebind();
-    }
-}
-
-void QOSCInterface::connect(const QString& addr, QObject* obj, const char* slot)
-{
-    auto ptr = new QOSCSlotMethod(addr, obj, slot);
-    _methods.append(QOSCMethod::ptr(ptr));
-}
-
-void QOSCInterface::disconnect()
-{
-    _methods.clear();
-}
-
-void QOSCInterface::disconnect(const QString& addr)
-{
-    for(auto it = _methods.begin(); it != _methods.end();)
-    {
-        if((*it)->addr == addr)
-            it = _methods.erase(it);
-        else
-            ++it;
-    }
-}
-
-void QOSCInterface::send(const QOSCPacket::ptr p)
-{
-    send(p->package());
-}
-
-void QOSCInterface::send(const QOSCMessage& m)
-{
-    send(m.package());
-}
-
-void QOSCInterface::send(const QOSCBundle& b)
-{
-    send(b.package());
-}
-
-void QOSCInterface::rebind()
-{
-    if(_s.isValid())
-    {
-        _s.disconnectFromHost();
-
-        if(_s.state() != QAbstractSocket::UnconnectedState)
-            _s.waitForDisconnected();
-    }
-
-    _isListening = _s.bind(_localPort);
-
-    if(_s.localPort() != _localPort)
-    {
-        _localPort = _s.localPort();
-        localPortChanged(_s.localPort());
-    }
-}
-
-void QOSCInterface::updateLocalAddr()
+void QOscInterfacePrivate::updateLocalAddr()
 {
     for(auto& iface : QNetworkInterface::allInterfaces())
     {
@@ -112,7 +77,7 @@ void QOSCInterface::updateLocalAddr()
             QString addr = QStringLiteral("%1/%2").arg(entry.ip().toString()).arg(entry.netmask().toString());
             auto p = QHostAddress::parseSubnet(addr);
 
-            if(_remoteAddr.isInSubnet(p))
+            if(remoteAddr.isInSubnet(p))
             {
                 setLocalAddr(entry.ip());
                 return;
@@ -121,88 +86,223 @@ void QOSCInterface::updateLocalAddr()
     }
 }
 
-void QOSCInterface::setLocalAddr(const QHostAddress& addr)
+void QOscInterfacePrivate::setLocalAddr(const QHostAddress& addr)
 {
-    if(!addr.isNull() && !addr.isEqual(_localAddr))
+    if(!addr.isNull() && !addr.isEqual(localAddr))
     {
-        _localAddr = addr;
-        localAddrChanged(addr);
+        localAddr = addr;
+        q_func()->localAddrChanged(addr);
     }
 }
 
-void QOSCInterface::send(const QByteArray& data)
+void QOscInterfacePrivate::send(const QByteArray& data)
 {
-    _s.writeDatagram(data, _remoteAddr, _remotePort);
+    socket.writeDatagram(data, remoteAddr, remotePort);
 }
 
-void QOSCInterface::readReady()
+void QOscInterfacePrivate::readReady()
 {
-    while(_s.hasPendingDatagrams())
-    {
-        auto datagram = _s.receiveDatagram();
-        auto packet = QOSCPacket::read(datagram.data());
+    Q_Q(QOscInterface);
 
-        processPacket(packet);
-        emit packetReceived(packet);
+    while(socket.hasPendingDatagrams())
+    {
+        auto datagram = socket.receiveDatagram();
+        auto data = datagram.data();
+
+        switch(QOsc::detectType(data))
+        {
+        case QOsc::OscMessage:
+        {
+            auto msg = QOscMessage::read(data);
+            if(msg.isValid())
+            {
+                processMessage(msg);
+                q->messageReceived(msg);
+            }
+            break;
+        }
+
+        case QOsc::OscBundle:
+        {
+            auto bundle = QOscBundle::read(data);
+            if(bundle.isValid())
+            {
+                processBundle(bundle);
+                q->bundleReceived(bundle);
+            }
+            break;
+        }
+
+        default:
+            break;
+        }
     }
 }
 
-void QOSCInterface::processPacket(const QOSCPacket::ptr& p, const QOSCTimeTag *time)
+void QOscInterfacePrivate::processMessage(const QOscMessage& msg)
 {
-    if(!p->isValid())
-        return;
-
-    switch(p->type)
+    for(auto& m : methods)
     {
-    case QOSCPacket::OSCMessage:
-        processMessage(p.dynamicCast<QOSCMessage>());
-        break;
-
-    case QOSCPacket::OSCBundle:
-        processBundle(p.dynamicCast<QOSCBundle>(), time);
-        break;
-
-    default:
-        break;
-    }
-}
-
-void QOSCInterface::processMessage(const QOSCMessage::ptr& msg)
-{
-    for(auto& m : _methods)
-    {
-        if(msg->match(m->addr))
+        if(msg.match(m->addr))
             m->call(msg);
     }
 }
 
-void QOSCInterface::processBundle(const QOSCBundle::ptr& b, const QOSCTimeTag* time)
+void QOscInterfacePrivate::processBundle(const QOscBundle& b)
 {
-    const QOSCTimeTag* t = time ? time : &b->time;
+    auto t = b.time();
 
-    if(t->isNow())
-        executeBundle(b, t);
+    if(t.isNow())
+        executeBundle(b);
     else
     {
-        qint64 ms = t->toDateTime().toMSecsSinceEpoch();
+        qint64 ms = t.toDateTime().toMSecsSinceEpoch();
         qint64 now = QDateTime::currentMSecsSinceEpoch();
 
         if(ms <= now)
-            executeBundle(b, &QOSCTimeTag::asap());
+            executeBundle(b);
         else
         {
+            auto b2 = b;
+            b2.setTime(QOscValue::asap());
+
             ms -= now;
+
             QTimer::singleShot(ms,
-            [=]()
+            [this, b2]()
             {
-                processBundle(b, &QOSCTimeTag::asap());
+                processBundle(b2);
             });
         }
     }
 }
 
-void QOSCInterface::executeBundle(const QOSCBundle::ptr& b, const QOSCTimeTag *time)
+void QOscInterfacePrivate::executeBundle(const QOscBundle& b)
 {
-    for(auto& e : b->elements)
-        processPacket(e, time);
+    for(auto& e : b)
+        processMessage(e);
 }
+
+
+
+// =============================================================================
+
+
+
+
+QOscInterface::QOscInterface(QObject* parent) :
+    QObject(*new QOscInterfacePrivate(), parent)
+{
+    Q_D(QOscInterface);
+    QObject::connect(&d->socket, &QAbstractSocket::readyRead,
+                     this,       &QOscInterface::readReady);
+    d->rebind();
+}
+
+QHostAddress QOscInterface::remoteAddr() const
+{
+    return d_func()->remoteAddr;
+}
+
+void QOscInterface::setRemoteAddr(const QHostAddress& addr)
+{
+    Q_D(QOscInterface);
+
+    if(addr != d->remoteAddr)
+    {
+        d->remoteAddr = addr;
+        remoteAddrChanged(addr);
+        d->updateLocalAddr();
+    }
+}
+
+quint16 QOscInterface::remotePort() const
+{
+    return d_func()->remotePort;
+}
+
+void QOscInterface::setRemotePort(quint16 p)
+{
+    Q_D(QOscInterface);
+
+    if(p != d->remotePort)
+    {
+        d->remotePort = p;
+        remotePortChanged(p);
+    }
+}
+
+QHostAddress QOscInterface::localAddr() const
+{
+    return d_func()->localAddr;
+}
+
+quint16 QOscInterface::localPort() const
+{
+    return d_func()->localPort;
+}
+
+void QOscInterface::setLocalPort(quint16 p)
+{
+    Q_D(QOscInterface);
+
+    if(p != d->localPort)
+    {
+        d->localPort = p;
+        localPortChanged(p);
+        d->rebind();
+    }
+}
+
+bool QOscInterface::isListening() const
+{
+    return d_func()->isListening;
+}
+
+void QOscInterface::connect(const QString& addr, QObject* obj, const char* slot)
+{
+    connect(QOscMethod::ptr(new QOscSlotMethod(addr, obj, slot)));
+}
+
+void QOscInterface::disconnect()
+{
+    d_func()->methods.clear();
+}
+
+void QOscInterface::disconnect(const QString& addr)
+{
+    Q_D(QOscInterface);
+
+    for(auto it = d->methods.begin(); it != d->methods.end();)
+    {
+        if((*it)->addr == addr)
+            it = d->methods.erase(it);
+        else
+            ++it;
+    }
+}
+
+void QOscInterface::send(const QOscMessage& m)
+{
+    d_func()->send(m.package());
+}
+
+void QOscInterface::send(const QOscBundle& b)
+{
+    d_func()->send(b.package());
+}
+
+void QOscInterface::connect(QOscMethod::ptr method)
+{
+    d_func()->methods.append(method);
+}
+
+void QOscInterface::readReady()
+{
+    d_func()->readReady();
+}
+
+# include "moc_qoscinterface.cpp"
+
+
+

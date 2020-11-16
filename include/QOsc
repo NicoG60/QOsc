@@ -1,0 +1,6 @@
+#ifndef QOSC
+#define QOSC
+
+#include "qosc.h"
+
+#endif // QOSC

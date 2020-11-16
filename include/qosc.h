@@ -1,9 +1,7 @@
 #ifndef QOSC_H
 #define QOSC_H
 
-#include "types/qosctypes.h"
-#include "qoschelper.h"
-#include "qoscpacket.h"
+#include "qoscvalue.h"
 #include "qoscbundle.h"
 #include "qoscmessage.h"
 #include "qoscinterface.h"

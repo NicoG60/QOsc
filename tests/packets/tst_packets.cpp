@@ -1,8 +1,8 @@
 #include <QtTest>
 
-#include <qoscmessage.h>
-#include <qoscbundle.h>
-#include <types/qosctypes.h>
+#include <QOscMessage>
+#include <QOscBundle>
+#include <QOscValue>
 
 #include <QDebug>
 
@@ -30,31 +30,24 @@ packets::~packets() {}
 
 void packets::test_message()
 {
-    QOSCMessage msg("/a/b/c", 10);
+    QOscMessage msg("/a/b/c", 10);
 
     QVERIFY(msg.isValid());
 
     QVERIFY(msg.size() == 1);
 
-    auto a = msg.args[0];
-    auto i = a.dynamicCast<QOSCInt32>();
-
-    QVERIFY(i);
-    QCOMPARE(i->toInt(), 10);
+    auto& i = msg[0];
+    QCOMPARE(i.toInt(), 10);
 
     QByteArray data = msg.package();
 
     QCOMPARE(data, QByteArray("/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A", 16));
 
-    auto packet = QOSCPacket::read(QByteArray("/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A", 16));
+    auto packet = QOscMessage::read(QByteArray("/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A", 16));
 
-    QCOMPARE(packet->type, QOSCPacket::OSCMessage);
-
-    auto msg2 = packet.dynamicCast<QOSCMessage>();
-
-    QCOMPARE(msg2->pattern, "/a/b/c");
-    QCOMPARE(msg2->valueType(), QOSC::Int32Type);
-    QCOMPARE(msg2->toInt(), 10);
+    QCOMPARE(packet.pattern(), "/a/b/c");
+    QCOMPARE(packet.type(), QOsc::Int32Type);
+    QCOMPARE(packet.toInt(), 10);
 }
 
 void packets::test_match_data()
@@ -107,7 +100,7 @@ void packets::test_match()
     QFETCH(QStringList, positive);
     QFETCH(QStringList, negative);
 
-    QOSCMessage msg(pattern, 10);
+    QOscMessage msg(pattern, 10);
 
     QCOMPARE(msg.matcher().pattern(), matcher);
 
@@ -120,19 +113,19 @@ void packets::test_match()
 
 void packets::test_bundle()
 {
-    QOSCMessage::ptr msg(new QOSCMessage("/a/b/c", 10));
-    QOSCBundle::ptr b1(new QOSCBundle());
-    QOSCBundle::ptr b2(new QOSCBundle());
+    QOscMessage msg("/a/b/c", 10);
+    QOscBundle b1;
+    QOscBundle b2;
 
-    b1->time = QOSCTimeTag::asap();
-    b1->elements << msg;
+    b1.setTime(QOscValue::asap());
+    b1 << msg;
 
-    b2->time = QOSCTimeTag::asap();
-    b2->elements << msg;
+    b2.setTime(QOscValue::asap());
+    b2 << msg;
 
-    b1->elements << b2;
+    b1 << b2;
 
-    QByteArray data = b1->package();
+    QByteArray data = b1.package();
 
     QCOMPARE(data, QByteArray("#bundle" // bundle mark
                               "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
@@ -140,13 +133,13 @@ void packets::test_bundle()
                               "\x00\x00\x00\x10" // first element size
                               "/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A" // first element content
 
-                              "\x00\x00\x00\x24" //second element size
-                              "#bundle\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x10/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A\x00" // second element content
+                              "\x00\x00\x00\x10" // second element size
+                              "/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A" // second element content
 
                               "\x00" // padding
-                              , 76));
+                              , 56));
 
-    auto packet = QOSCPacket::read( QByteArray("#bundle" // bundle mark
+    auto bundle = QOscBundle::read( QByteArray("#bundle" // bundle mark
                                                "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
 
                                                "\x00\x00\x00\x10" // first element size
@@ -158,37 +151,16 @@ void packets::test_bundle()
                                                "\x00" // padding
                                                , 76));
 
-    QCOMPARE(packet->type, QOSCPacket::OSCBundle);
+    QVERIFY(bundle.time().isNow());
 
-    auto b3 = packet.dynamicCast<QOSCBundle>();
+    QCOMPARE(bundle.size(), 2);
 
-    QCOMPARE(b3->time.toUint64(), 1ul);
-
-    QCOMPARE(b3->size(), 2);
-
-    QCOMPARE(b3->first()->type, QOSCPacket::OSCMessage);
-
-    auto msg2 = b3->first().dynamicCast<QOSCMessage>();
-
-    QCOMPARE(msg2->pattern, "/a/b/c");
-    QCOMPARE(msg2->valueType(), QOSC::Int32Type);
-    QCOMPARE(msg2->toInt(), 10);
-
-    QCOMPARE(b3->last()->type, QOSCPacket::OSCBundle);
-
-    auto b4 = b3->last().dynamicCast<QOSCBundle>();
-
-    QCOMPARE(b4->time.toUint64(), 1ull);
-
-    QCOMPARE(b4->size(), 1);
-
-    QCOMPARE(b4->first()->type, QOSCPacket::OSCMessage);
-
-    auto msg3 = b4->first().dynamicCast<QOSCMessage>();
-
-    QCOMPARE(msg3->pattern, "/a/b/c");
-    QCOMPARE(msg3->valueType(), QOSC::Int32Type);
-    QCOMPARE(msg3->toInt(), 10);
+    for(auto& e : bundle)
+    {
+        QCOMPARE(e.pattern(), "/a/b/c");
+        QCOMPARE(e.type(), QOsc::Int32Type);
+        QCOMPARE(e.toInt(), 10);
+    }
 }
 
 QTEST_APPLESS_MAIN(packets)

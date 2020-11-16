@@ -1,7 +1,8 @@
 #include <QtTest>
 #include <QCoreApplication>
 
-#include <qosc.h>
+#include <QOsc>
+#include <QUdpSocket>
 #include <QNetworkDatagram>
 
 class interface : public QObject
@@ -30,8 +31,8 @@ public:
     void verify_send(QByteArray comp);
     void send(QByteArray comp);
     QByteArray msgSocketError(const QAbstractSocket &s);
-    QOSCMessage::ptr magicMessage();
-    QOSCBundle::ptr magicBundle();
+    QOscMessage magicMessage();
+    QOscBundle magicBundle();
 
 public:
     const QHostAddress localAddr{"127.0.0.1"};
@@ -39,7 +40,7 @@ public:
     const QHostAddress remoteAddr{"127.0.0.1"};
     const quint16      remotePort = 9000;
 
-    QOSCInterface test;
+    QOscInterface test;
     QUdpSocket    echo;
 };
 
@@ -82,19 +83,20 @@ void interface::cleanupTestCase() {}
 void interface::test_send()
 {
     test.send("/a/b/c", 10);
-    verify_send(magicMessage()->package());
+    verify_send(magicMessage().package());
 
-    auto value = QOSC::makeValue(10);
+    QOscValue value(10);
     test.send("/a/b/c", value);
-    verify_send(magicMessage()->package());
+    verify_send(magicMessage().package());
 
-    QOSCMessage msg("/a/b/c", value);
+    QOscMessage msg("/a/b/c", value);
     test.send(msg);
-    verify_send(magicMessage()->package());
+    verify_send(magicMessage().package());
 
-    QOSCBundle b;
-    b.time = QOSCTimeTag::asap();
-    b.elements << QOSCMessage::ptr::create("/a/b/c", value);
+    QOscBundle b;
+    b.setTime(QOscValue::asap());
+    b << QOscMessage("/a/b/c", value);
+
     test.send(b);
     verify_send(QByteArray("#bundle" // bundle mark
                            "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
@@ -106,54 +108,33 @@ void interface::test_send()
 
 void interface::test_receive()
 {
-    QSignalSpy spy(&test, SIGNAL(packetReceived(QOSCPacket::ptr)));
+    QSignalSpy spyMsg(&test, SIGNAL(messageReceived(const QOscMessage&)));
+    QSignalSpy spyBundle(&test, SIGNAL(bundleReceived(const QOscBundle&)));
 
     {
-        send(magicMessage()->package());
-        QVERIFY(spy.wait());
-        auto packet = spy.last().first().value<QOSCPacket::ptr>();
-        QCOMPARE(packet->type, QOSCPacket::OSCMessage);
-        auto msg = packet.dynamicCast<QOSCMessage>();
-        QCOMPARE(msg->pattern, "/a/b/c");
-        QCOMPARE(msg->args[0]->toInt(), 10);
+        send(magicMessage().package());
+        QVERIFY(spyMsg.wait());
+        auto msg = spyMsg.last().first().value<QOscMessage>();
+
+        QCOMPARE(msg.pattern(), "/a/b/c");
+        QCOMPARE(msg.toInt(), 10);
     }
 
     {
-        send(magicBundle()->package());
-        QVERIFY(spy.wait());
-        auto packet = spy.last().first().value<QOSCPacket::ptr>();
+        send(magicBundle().package());
+        QVERIFY(spyBundle.wait());
+        auto bundle = spyBundle.last().first().value<QOscBundle>();
 
-        QCOMPARE(packet->type, QOSCPacket::OSCBundle);
+        QVERIFY(bundle.time().isNow());
 
-        auto b3 = packet.dynamicCast<QOSCBundle>();
+        QCOMPARE(bundle.size(), 2);
 
-        QCOMPARE(b3->time.toUint64(), 1ul);
-
-        QCOMPARE(b3->size(), 2);
-
-        QCOMPARE(b3->first()->type, QOSCPacket::OSCMessage);
-
-        auto msg2 = b3->first().dynamicCast<QOSCMessage>();
-
-        QCOMPARE(msg2->pattern, "/a/b/c");
-        QCOMPARE(msg2->valueType(), QOSC::Int32Type);
-        QCOMPARE(msg2->toInt(), 10);
-
-        QCOMPARE(b3->last()->type, QOSCPacket::OSCBundle);
-
-        auto b4 = b3->last().dynamicCast<QOSCBundle>();
-
-        QCOMPARE(b4->time.toUint64(), 1ull);
-
-        QCOMPARE(b4->size(), 1);
-
-        QCOMPARE(b4->first()->type, QOSCPacket::OSCMessage);
-
-        auto msg3 = b4->first().dynamicCast<QOSCMessage>();
-
-        QCOMPARE(msg3->pattern, "/a/b/c");
-        QCOMPARE(msg3->valueType(), QOSC::Int32Type);
-        QCOMPARE(msg3->toInt(), 10);
+        for(auto& e : bundle)
+        {
+            QCOMPARE(e.pattern(), "/a/b/c");
+            QCOMPARE(e.type(), QOsc::Int32Type);
+            QCOMPARE(e.toInt(), 10);
+        }
     }
 }
 
@@ -163,24 +144,24 @@ void interface::test_connect_dispatch()
     bool adc = false;
 
     test.connect("/a/b/c",
-    [&](const QOSCMessage::ptr& m)
+    [&](const QOscMessage& m)
     {
-        QCOMPARE(m->pattern, "/a/?/c");
-        QCOMPARE(m->args[0]->toInt(), 10);
+        QCOMPARE(m.pattern(), "/a/?/c");
+        QCOMPARE(m.toInt(), 10);
         abc = true;
     });
 
     test.connect("/a/d/c",
-    [&](const QOSCMessage::ptr& m)
+    [&](const QOscMessage& m)
     {
-        QCOMPARE(m->pattern, "/a/?/c");
-        QCOMPARE(m->args[0]->toInt(), 10);
+        QCOMPARE(m.pattern(), "/a/?/c");
+        QCOMPARE(m.toInt(), 10);
         adc = true;
     });
 
     auto msg = magicMessage();
-    msg->pattern = "/a/?/c";
-    send(msg->package());
+    msg.setPattern("/a/?/c");
+    send(msg.package());
 
     QVERIFY(QTest::qWaitFor([&](){ return abc && adc; }));
 
@@ -192,24 +173,23 @@ void interface::test_time_bundle()
     int abc = 0;
 
     test.connect("/a/b/c",
-    [&](const QOSCMessage::ptr& m)
+    [&](const QOscMessage& m)
     {
-        QCOMPARE(m->pattern, "/a/b/c");
-        QCOMPARE(m->args[0]->toInt(), 10);
+        QCOMPARE(m.pattern(), "/a/b/c");
+        QCOMPARE(m.toInt(), 10);
         abc++;
     });
 
-    send(magicBundle()->package());
+    send(magicBundle().package());
 
     QVERIFY(QTest::qWaitFor([&](){ return abc == 2; }, 100));
 
     auto bundle = magicBundle();
-    bundle->time = QDateTime::currentDateTime().addSecs(10);
-    bundle->elements[1].dynamicCast<QOSCBundle>()->time.fromUint64(0xFFFFFFFFFFFFFFFFull);
+    bundle.setTime(QDateTime::currentDateTime().addSecs(10));
 
     QElapsedTimer t;
     t.start();
-    send(bundle->package());
+    send(bundle.package());
 
     QVERIFY(QTest::qWaitFor([&](){ return abc > 2; }, 11000));
     qDebug() << t.elapsed();
@@ -218,25 +198,25 @@ void interface::test_time_bundle()
 void interface::test_readme_server()
 {
     // Bind the network interface so you can send and get messages
-    QOSCInterface iface;
+    QOscInterface iface;
     iface.setRemoteAddr(QHostAddress("192.168.0.10"));
     iface.setRemotePort(9000);
     iface.setLocalPort(8000);
 
     // Connect callbacks to get notified of new messages
     iface.connect("/my/osc/pattern",
-    [](const QOSCMessage::ptr& msg)
+    [](const QOscMessage& msg)
     {
         // This is the message callback
         // It'll be called each time a message matching the
         // pattern you set is received.
 
-        for(auto& arg : *msg)
+        for(auto& arg : msg)
         {
-            if(arg->type != QOSC::Int32Type)
+            if(!arg.isInt())
                 continue;
 
-            int i = arg->toInt();
+            int i = arg.toInt();
 
             // do stuff with i
 
@@ -246,37 +226,41 @@ void interface::test_readme_server()
 
     // Alternatively you can use any QObject slots
     QObject obj;
-    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOSCMessage::ptr& msg)));
+    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOscMessage& msg)));
 
     // Or get all messages and dispatch them yourself
     QObject dispatcher;
-    QObject::connect(&iface,      SIGNAL(packetReceived(const QOSCPacket::ptr& ptr)),
-                     &dispatcher, SLOT(dispatch(const QOSCPacket::ptr& ptr)));
+
+    QObject::connect(&iface,      SIGNAL(messageReceived(const QOscMessage&)),
+                     &dispatcher, SLOT(dispatchMessage(const QOscMessage&)));
+
+    QObject::connect(&iface,      SIGNAL(bundleReceived(const QOscBundle&)),
+                     &dispatcher, SLOT(dispatchBundle(const QOscBundle&)));
 }
 
 void interface::test_readme_client()
 {
     // Bind the network interface so you can send and get messages
-    QOSCInterface iface;
+    QOscInterface iface;
     iface.setRemoteAddr(QHostAddress("192.168.0.10"));
     iface.setRemotePort(9000);
     iface.setLocalPort(8000);
 
     // Craft the message you want to send
-    auto msg = QOSCMessage::ptr::create("/my/osc/pattern", QString("Some random string"));
+    QOscMessage msg("/my/osc/pattern", QString("Some random string"));
 
     iface.send(msg);
 
     // More complex messages with several values
-    auto myInt = QOSC::makeValue(10);
-    auto myMidi = QOSC::makeValue(/*port:   0       */ 0x00,
-                                  /*status: note on */ 0x90,
-                                  /*data1:  note A4 */ 0x45,
-                                  /*data2:  note vel*/ 0x10);
-    auto myColor = QOSC::makeValue(QColor(Qt::green));
+    QOscValue myInt(10);
+    QOscValue myMidi = QOscValue::midiValue(/*port:   0       */ 0x00,
+                                            /*status: note on */ 0x90,
+                                            /*data1:  note A4 */ 0x45,
+                                            /*data2:  note vel*/ 0x10);
+    QOscValue myColor(QColor(0, 255, 0));
 
-    auto msg2 = QOSCMessage::ptr::create("/my/osc/pattern");
-    *msg2 << myInt << myMidi << myColor;
+    QOscMessage msg2("/my/osc/pattern");
+    msg2 << myInt << myMidi << myColor;
 
     iface.send(msg2);
 
@@ -284,12 +268,12 @@ void interface::test_readme_client()
     // They are useful to deliver several messages to different patterns
     // They can also be timed, You can specify an absolute Date and Time when you want them to be executed
 
-    auto bundle = QOSCBundle::ptr::create();
-    bundle->time = QDateTime::currentDateTime().addSecs(15); // The bundle is for 15sec later
-    *bundle << QOSCMessage::ptr::create("/osc/pattern1", QString("Some random string"))
-            << QOSCMessage::ptr::create("/osc/pattern2", 125)
-            << QOSCMessage::ptr::create("/osc/pattern3", true)
-            << QOSCMessage::ptr::create("/osc/pattern4", 3.14);
+    QOscBundle bundle;
+    bundle.setTime(QDateTime::currentDateTime().addSecs(15)); // The bundle is for 15sec later
+    bundle << QOscMessage("/osc/pattern1", QString("Some random string"))
+           << QOscMessage("/osc/pattern2", 125)
+           << QOscMessage("/osc/pattern3", true)
+           << QOscMessage("/osc/pattern4", 3.14);
 
     iface.send(bundle);
 }
@@ -327,24 +311,25 @@ QByteArray interface::msgSocketError(const QAbstractSocket &s)
    return result.toLocal8Bit();
 }
 
-QOSCMessage::ptr interface::magicMessage()
+QOscMessage interface::magicMessage()
 {
-    return QOSCMessage::ptr::create("/a/b/c", 10);
+    return QOscMessage("/a/b/c", 10);
 }
 
-QOSCBundle::ptr interface::magicBundle()
+QOscBundle interface::magicBundle()
 {
-    QOSCMessage::ptr msg(new QOSCMessage("/a/b/c", 10));
-    QOSCBundle::ptr b1(new QOSCBundle());
-    QOSCBundle::ptr b2(new QOSCBundle());
+    QOscMessage msg("/a/b/c", 10);
+    QOscBundle b1;
+    QOscBundle b2;
 
-    b1->time = QOSCTimeTag::asap();
-    b1->elements << msg;
+    b1.setTime(QOscValue::asap());
+    b1 << msg;
 
-    b2->time = QOSCTimeTag::asap();
-    b2->elements << msg;
+    b2.setTime(QOscValue::asap());
+    b2 << msg;
 
-    b1->elements << b2;
+    b1 << b2;
+
     return b1;
 }
 

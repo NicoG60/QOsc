@@ -1,0 +1,6 @@
+#ifndef QOSCINTERFACE
+#define QOSCINTERFACE
+
+#include "qoscinterface.h"
+
+#endif // QOSCINTERFACE

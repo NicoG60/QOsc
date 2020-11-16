@@ -1,70 +1,56 @@
 #ifndef QOSCMESSAGE_H
 #define QOSCMESSAGE_H
 
-#include "QOSC_global.h"
-#include "qoscpacket.h"
-#include "types/qoscvalue.h"
-#include "qoschelper.h"
+#include "qosc_global.h"
+#include "qoscvalue.h"
+
 #include <QString>
 #include <QRegularExpression>
 
 #define QOSC_MESSAGE_VALUE_METHOD(FType, Type) \
-    inline Type to##FType(int i = 0) const { return args[i]->to##FType(); }
+    inline Type to##FType(int i = 0) const { return at(i).to##FType(); }
 
-class QOSC_EXPORT QOSCMessage : public QOSCPacket
+class QOscBundle;
+class QOscMessagePrivate;
+
+class QOSC_EXPORT QOscMessage : public QList<QOscValue>
 {
 public:
-    typedef QSharedPointer<QOSCMessage> ptr;
-
-    QOSCMessage() : QOSCPacket(OSCMessage) {}
-    QOSCMessage(const QOSCMessage&) = default;
-    QOSCMessage(QOSCMessage&&) = default;
-
-    QOSCMessage& operator=(const QOSCMessage&) = default;
-    QOSCMessage& operator=(QOSCMessage&&) = default;
-
-    QOSCMessage(const QString& pattern) :
-        QOSCPacket(OSCMessage),
-        pattern(pattern)
-    {
-        compilePattern();
-    }
+    QOscMessage();
+    QOscMessage(const QOscMessage& copy);
+    QOscMessage(QOscMessage&& move);
+    QOscMessage(const QString& pattern);
 
     template<class T>
-    QOSCMessage(const QString& pattern, const T& arg) :
-        QOSCPacket(OSCMessage),
-        pattern(pattern),
-        args({ QOSC::makeValue(arg) })
+    QOscMessage(const QString& pattern, const T& arg) :
+        QOscMessage(pattern)
     {
-        compilePattern();
+        append(QOscValue(arg));
     }
 
     template<>
-    QOSCMessage(const QString& pattern, const QOSCValue::ptr& arg) :
-        QOSCPacket(OSCMessage),
-        pattern(pattern),
-        args({ arg })
+    QOscMessage(const QString& pattern, const QOscValue& arg) :
+        QOscMessage(pattern)
     {
-        compilePattern();
+        append(arg);
     }
 
-    QOSCMessage(const QString& pattern, qint8 p, qint8 s, qint8 d1, qint8 d2) :
-        QOSCPacket(OSCMessage),
-        pattern(pattern),
-        args({ QOSC::makeValue(p, s, d1, d2) })
-    {
-        compilePattern();
-    }
+    ~QOscMessage();
 
-    bool isValid() const override;
+    QOscMessage& operator=(const QOscMessage& copy);
+    QOscMessage& operator=(QOscMessage&& move);
+
+    void swap(QOscMessage& other);
+
+    bool isValid() const;
 
     bool match(const QString& addr) const;
 
-    void write(QIODevice* dev) const override;
+    QString pattern() const;
+    QRegularExpression matcher() const;
 
-    QRegularExpression matcher() const { return _match; }
+    void setPattern(const QString& p);
 
-    // First Value exposition
     QOSC_MESSAGE_VALUE_METHOD(Int32, qint32);
     QOSC_MESSAGE_VALUE_METHOD(Int,   qint32);
 
@@ -92,65 +78,30 @@ public:
     QOSC_MESSAGE_VALUE_METHOD(DateTime, QDateTime);
     QOSC_MESSAGE_VALUE_METHOD(TimeTag,  QDateTime);
 
-    QOSC::Type valueType(int i = 0) const { return args[i]->type; }
+    QOsc::ValueType type(int i = 0) const { return at(i).type(); }
 
-    // QList exposition
-    inline QOSCValue::list::iterator       begin()        { return args.begin();  }
-    inline QOSCValue::list::const_iterator begin()  const { return args.begin();  }
-    inline QOSCValue::list::const_iterator cbegin() const { return args.cbegin(); }
+    QOscMessage& operator <<(const QOscValue& v);
 
-    inline QOSCValue::list::iterator       end()        { return args.end();  }
-    inline QOSCValue::list::const_iterator end()  const { return args.end();  }
-    inline QOSCValue::list::const_iterator cend() const { return args.cend(); }
+    QOscMessage& operator +=(const QOscValue& v);
 
-    inline int size() const noexcept { return args.size(); }
-    inline bool isEmpty() const noexcept { return args.isEmpty(); }
-    inline void clear() { args.clear(); }
+    QOscMessage operator +(const QOscValue& v) const;
 
-    inline const QOSCValue::ptr& at(int i)         const { return args.at(i); }
-    inline       QOSCValue::ptr& operator[](int i)       { return args[i];    }
-    inline const QOSCValue::ptr& operator[](int i) const { return args[i];    }
+    QOscBundle operator +(const QOscMessage& v) const;
 
-    inline void reserve(int size)                       { args.reserve(size); }
-    inline void append(const QOSCValue::ptr& t)         { args.append(t);     }
-    inline void prepend(const QOSCValue::ptr& t)        { args.prepend(t);    }
-    inline void insert(int i, const QOSCValue::ptr& t)  { args.insert(i, t);  }
-    inline void replace(int i, const QOSCValue::ptr& t) { args.replace(i, t); }
-    inline void removeAt(int i)                         { args.removeAt(i);   }
+    QOscValue& operator[](int i);
+    const QOscValue& operator[](int i) const;
 
-    inline QOSCValue::ptr takeAt(int i) { return args.takeAt(i);   }
-    inline QOSCValue::ptr takeFirst()   { return args.takeFirst(); }
-    inline QOSCValue::ptr takeLast()    { return args.takeLast();  }
+    QByteArray package() const;
+    void package(QIODevice* dev) const;
 
-    inline       QOSCValue::ptr& first()       { return args.first(); }
-    inline const QOSCValue::ptr& first() const { return args.first(); }
-    inline       QOSCValue::ptr& last()        { return args.last();  }
-    inline const QOSCValue::ptr& last()  const { return args.last();  }
+    static QOscMessage read(const QByteArray& data);
+    static QOscMessage read(QIODevice* dev);
 
-    inline void removeFirst() { args.removeFirst(); }
-    inline void removeLast()  { args.removeLast(); }
-
-    inline QOSCMessage& operator+=(const QOSCValue::ptr& t) { append(t); return *this; }
-    inline QOSCMessage& operator<< (const QOSCValue::ptr& t) { append(t); return *this; }
-
-protected:
-    void load(QIODevice* dev) override;
-
-    template<class T>
-    void loadArg(QIODevice* dev)
-    {
-        auto a = new T;
-        a->readData(dev);
-        args.append(QOSCValue::ptr(a));
-    }
-
-    void compilePattern();
-
-    QRegularExpression _match;
-
-public:
-    QString pattern;
-    QOSCValue::list args;
+private:
+    QScopedPointer<QOscMessagePrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QOscMessage);
 };
+
+Q_DECLARE_METATYPE(QOscMessage);
 
 #endif // QOSCMESSAGE_H
