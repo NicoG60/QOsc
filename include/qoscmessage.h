@@ -4,6 +4,9 @@
 #include "qosc_global.h"
 #include "qoscvalue.h"
 
+#include <QList>
+#include <QVector>
+#include <QSet>
 #include <QString>
 #include <QRegularExpression>
 

@@ -52,7 +52,7 @@ QOscValuePrivate* QOscValuePrivate::newFromType(QOsc::ValueType t)
     }
 }
 
-void QOscValuePrivate::copy(QOscValuePrivate* src, QOscValuePrivate* dst)
+void QOscValuePrivate::copy(const QOscValuePrivate* src, QOscValuePrivate* dst)
 {
     Q_ASSERT(src->type == dst->type);
 
@@ -104,60 +104,54 @@ void QOscValuePrivate::copy(QOscValuePrivate* src, QOscValuePrivate* dst)
     }
 }
 
-QOscValuePrivate* QOscValuePrivate::newCopyFrom(QOscValuePrivate* src)
+QOscValuePrivate* QOscValuePrivate::newCopyFrom(const QOscValuePrivate* src)
 {
     auto dst = newFromType(src->type);
     copy(src, dst);
     return dst;
 }
 
-bool QOscValuePrivate::compare(QOscValuePrivate* a, QOscValuePrivate* b)
+bool QOscValuePrivate::compare(const QOscValuePrivate* a, const QOscValuePrivate* b)
 {
-    if(a->type != b->type)
-        return false;
+    if(a->type < b->type)
+        return -1;
+
+    if(a->type > b->type)
+        return 1;
 
     switch(a->type)
     {
     case QOsc::CharType:
     case QOsc::Int32Type:
         return QOSC_PRIVATE_EQ(a, b, QOscInt32Private, i);
-        break;
 
     case QOsc::Int64Type:
         return QOSC_PRIVATE_EQ(a, b, QOscInt64Private, i);
-        break;
 
     case QOsc::Float32Type:
         return QOSC_PRIVATE_EQ(a, b, QOscFloat32Private, f);
-        break;
 
     case QOsc::Float64Type:
         return QOSC_PRIVATE_EQ(a, b, QOscFloat64Private, f);
-        break;
 
     case QOsc::ColorType:
         return QOSC_PRIVATE_EQ(a, b, QOscColorPrivate, c);
-        break;
 
     case QOsc::SymbolType:
     case QOsc::StringType:
         return QOSC_PRIVATE_EQ(a, b, QOscStringPrivate, str);
-        break;
 
     case QOsc::BlobType:
         return QOSC_PRIVATE_EQ(a, b, QOscBlobPrivate, data);
-        break;
 
     case QOsc::TimeTagType:
         return QOSC_PRIVATE_EQ(a, b, QOscTimeTagPrivate, t);
-        break;
 
     case QOsc::MidiType:
         return QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, port)
                 && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, status)
                 && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, data1)
                 && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, data2);
-        break;
 
     default:
         return false;
@@ -659,4 +653,9 @@ QOscValue QOscValue::symbolValue(const QString& str)
     d->fromString(str);
 
     return QOscValue(d);
+}
+
+uint QOscValue::hash(uint seed) const
+{
+    return d_ptr->hash(seed);
 }

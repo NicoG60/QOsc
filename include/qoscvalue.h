@@ -118,6 +118,14 @@ public:
     static QOscValue infinitumValue();
     static QOscValue symbolValue(const QString& str);
 
+    friend uint qHash(const QOscValue& value, uint seed = 0)
+    {
+        return value.hash(seed);
+    }
+
+protected:
+    uint hash(uint seed) const;
+
 protected:
     QScopedPointer<QOscValuePrivate> d_ptr;
 };

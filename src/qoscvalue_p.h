@@ -8,6 +8,7 @@
 #include <QString>
 #include <QByteArray>
 #include <QDateTime>
+#include <QHash>
 
 #define QOSC_PRIVATE_ACCESS(FType, Type, OSCType, Default) \
     virtual inline Type to##FType(const Type& defaultValue) const { return defaultValue; } \
@@ -15,10 +16,10 @@
     virtual inline bool is##FType() const { return type == OSCType; }
 
 #define QOSC_PRIVATE_COPY(FROM, TO, CLASS, VAR) \
-    dynamic_cast<CLASS*>(TO)->VAR = dynamic_cast<CLASS*>(FROM)->VAR;
+    dynamic_cast<CLASS*>(TO)->VAR = dynamic_cast<const CLASS*>(FROM)->VAR;
 
 #define QOSC_PRIVATE_EQ(A, B, CLASS, VAR) \
-    dynamic_cast<CLASS*>(A)->VAR == dynamic_cast<CLASS*>(B)->VAR
+    dynamic_cast<const CLASS*>(A)->VAR == dynamic_cast<const CLASS*>(B)->VAR
 
 class QOscValuePrivate
 {
@@ -67,9 +68,11 @@ public:
     }
 
     static QOscValuePrivate* newFromType(QOsc::ValueType t);
-    static void copy(QOscValuePrivate* src, QOscValuePrivate* dst);
-    static QOscValuePrivate* newCopyFrom(QOscValuePrivate* src);
-    static bool compare(QOscValuePrivate* a, QOscValuePrivate* b);
+    static void copy(const QOscValuePrivate* src, QOscValuePrivate* dst);
+    static QOscValuePrivate* newCopyFrom(const QOscValuePrivate* src);
+    static bool compare(const QOscValuePrivate *a, const QOscValuePrivate *b);
+
+    virtual inline uint hash(uint seed = 0) { return qHash(type, seed); }
 
     const QOsc::ValueType type;
 };
@@ -99,6 +102,8 @@ public:
 
     inline void fromInt32(const qint32& v) override { i = v; }
 
+    inline uint hash(uint seed = 0) override { return qHash(i, seed) ^ QOscValuePrivate::hash(seed); }
+
     qint32 i;
 };
 
@@ -123,6 +128,8 @@ public:
     inline double toFloat64(const double&) const override { return i; }
 
     inline void fromInt64(const qint64& v) override { i = v; }
+
+    inline uint hash(uint seed = 0) override { return qHash(i, seed) ^ QOscValuePrivate::hash(seed); }
 
     qint64 i;
 };
@@ -149,6 +156,8 @@ public:
 
     inline void fromFloat32(const float& v) override { f = v; }
 
+    inline uint hash(uint seed = 0) override { return qHash(f, seed) ^ QOscValuePrivate::hash(seed); }
+
     float f;
 };
 
@@ -173,6 +182,8 @@ public:
     inline double toFloat64(const double&) const override { return f; }
 
     inline void fromFloat64(const double& v) override { f = v; }
+
+    inline uint hash(uint seed = 0) override { return qHash(f, seed) ^ QOscValuePrivate::hash(seed); }
 
     double f;
 };
@@ -232,6 +243,8 @@ public:
     inline QColor toColor(const QColor&) const override { return c; }
     inline void fromColor(const QColor& v) override { c = v; }
 
+    inline uint hash(uint seed = 0) override { return qHash(c.rgba(), seed) ^ QOscValuePrivate::hash(seed); }
+
     QColor c;
 };
 
@@ -250,6 +263,8 @@ public:
     inline bool toBool(bool) const override { return C == 'T' || C == 'I'; }
 
     inline void writeTypeTag(QIODevice* dev) const override { dev->putChar(C); }
+
+    inline uint hash(uint seed = 0) override { return qHash(C, seed) ^ QOscValuePrivate::hash(seed); }
 };
 
 typedef QOscLiteralPrivate<'T', QOsc::TrueType>      QOscTruePrivate;
@@ -284,6 +299,12 @@ public:
         dev->getChar((char*)&data1);
         dev->getChar((char*)&data2);
     }
+
+    inline uint hash(uint seed = 0) override { return qHash(port, seed)   ^
+                                                      qHash(status, seed) ^
+                                                      qHash(data1, seed)  ^
+                                                      qHash(data2, seed)  ^
+                                                      QOscValuePrivate::hash(seed); }
 
     qint8 port;
     qint8 status;
@@ -342,6 +363,8 @@ public:
     inline QString toString(const QString&) const override { return str; }
     inline QByteArray toBlob(const QByteArray&) const override { return str.toLatin1(); }
 
+    inline uint hash(uint seed = 0) override { return qHash(str, seed) ^ QOscValuePrivate::hash(seed); }
+
     QString str;
 };
 
@@ -393,6 +416,8 @@ public:
     inline QByteArray toBlob(const QByteArray&) const override { return data; }
     inline QString toString(const QString&) const override { return QString::fromLatin1(data); }
 
+    inline uint hash(uint seed = 0) override { return qHash(data, seed) ^ QOscValuePrivate::hash(seed); }
+
     QByteArray data;
 };
 
@@ -405,7 +430,7 @@ public:
 class QOscTimeTagPrivate : public QOscValuePrivate
 {
     constexpr static quint64 unix_to_ntp = 2208988800ul;
-    constexpr static quint64 factor = 1ul << 32;
+    constexpr static quint64 factor = 1ull << 32;
 
 public:
     QOscTimeTagPrivate() : QOscValuePrivate(QOsc::TimeTagType) {}
@@ -425,6 +450,8 @@ public:
 
     inline void fromTimeTag(const QDateTime& dt) override { fromUnixEpoch(dt.toMSecsSinceEpoch()/1000.0); }
     inline QDateTime toTimeTag(const QDateTime&) const override { return QDateTime::fromMSecsSinceEpoch(toUnixEpoch()*1000, Qt::UTC); }
+
+    inline uint hash(uint seed = 0) override { return qHash(t, seed) ^ QOscValuePrivate::hash(seed); }
 
     quint64 t;
 };
