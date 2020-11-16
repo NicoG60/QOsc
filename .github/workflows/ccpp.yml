@@ -80,7 +80,7 @@ jobs:
     - name: Test
       run: make check
       env:
-        DYLD_LIBRARY_PATH: ${{ github.workspace }}/build/src/lib
+        DYLD_INSERT_LIBRARIES: ${{ github.workspace }}/build/src/lib/libQOsc.1.dyld
       working-directory: build
 
     - name: Clean

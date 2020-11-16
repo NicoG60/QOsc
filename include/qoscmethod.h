@@ -29,7 +29,7 @@ private:
 };
 
 template<class Func>
-class QOSC_EXPORT QOscLambdaMethod : public QOscMethod
+class QOscLambdaMethod : public QOscMethod
 {
 public:
     QOscLambdaMethod(const QString& addr, Func f) : QOscMethod(addr), _f(f) {}
