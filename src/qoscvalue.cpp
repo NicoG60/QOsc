@@ -49,6 +49,9 @@ QOscValuePrivate* QOscValuePrivate::newFromType(QOsc::ValueType t)
 
     case QOsc::MidiType:
         return new QOscMidiPrivate;
+
+    default:
+        return nullptr;
     }
 }
 
@@ -113,11 +116,8 @@ QOscValuePrivate* QOscValuePrivate::newCopyFrom(const QOscValuePrivate* src)
 
 bool QOscValuePrivate::compare(const QOscValuePrivate* a, const QOscValuePrivate* b)
 {
-    if(a->type < b->type)
-        return -1;
-
-    if(a->type > b->type)
-        return 1;
+    if(a->type != b->type)
+        return false;
 
     switch(a->type)
     {

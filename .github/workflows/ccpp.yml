@@ -16,7 +16,7 @@ jobs:
       uses: ilammy/msvc-dev-cmd@v1
 
     - name: Get Qt
-      uses: jurplel/install-qt-action@v2.6.2
+      uses: jurplel/install-qt-action@v2
       with:
         modules: 'core gui network'
 
@@ -60,7 +60,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Get Qt
-      uses: jurplel/install-qt-action@v2.6.2
+      uses: jurplel/install-qt-action@v2
       with:
         modules: 'core gui network'
 
