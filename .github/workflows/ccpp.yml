@@ -39,9 +39,9 @@ jobs:
 
     - name: Clean
       run: |
-        rm -rf .*
-        rm -rf tmp
-        rm -rf Makefile
+        rm .* -r -fo
+        rm tmp -r -fo
+        rm Makefile -r -fo
       working-directory: build
 
     - name: Upload
@@ -80,7 +80,7 @@ jobs:
     - name: Test
       run: make check
       env:
-        DYLD_INSERT_LIBRARIES: ${{ github.workspace }}/build/src/lib/libQOsc.1.dyld
+        DYLD_INSERT_LIBRARIES: ${{ github.workspace }}/build/src/lib/libQOsc.1.dylib
       working-directory: build
 
     - name: Clean
