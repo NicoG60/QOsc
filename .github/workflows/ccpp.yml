@@ -24,7 +24,7 @@ jobs:
       run: mkdir build
 
     - name: QMake
-      run: qmake ..
+      run: qmake CONFIG+=staticlib ..
       working-directory: build
 
     - name: Make
@@ -68,7 +68,7 @@ jobs:
       run: mkdir build
 
     - name: QMake
-      run: qmake ..
+      run: qmake CONFIG+=staticlib ..
       working-directory: build
 
     - name: Make

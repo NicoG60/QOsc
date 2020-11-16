@@ -1,3 +1,3 @@
 INCLUDEPATH += $$PWD/../include
-macx: LIBS += -L$$OUT_PWD/../../src/lib -llibQOsc.a
+macx: LIBS += -L$$OUT_PWD/../../src/lib -lQOsc
 win32: LIBS += -L$$OUT_PWD/../../src/lib -lQOsc
