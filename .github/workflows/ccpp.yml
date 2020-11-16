@@ -5,48 +5,48 @@ on:
     branches: [ master ]
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  # build-windows:
+  #   runs-on: windows-latest
 
-    steps:
-    - name: Get sources
-      uses: actions/checkout@v2
+  #   steps:
+  #   - name: Get sources
+  #     uses: actions/checkout@v2
 
-    - name: Configure Windows env
-      uses: ilammy/msvc-dev-cmd@v1
+  #   - name: Configure Windows env
+  #     uses: ilammy/msvc-dev-cmd@v1
 
-    - name: Get Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-        modules: 'core gui network'
+  #   - name: Get Qt
+  #     uses: jurplel/install-qt-action@v2
+  #     with:
+  #       modules: 'core gui network'
 
-    - name: Make build dir
-      run: mkdir build
+  #   - name: Make build dir
+  #     run: mkdir build
 
-    - name: QMake
-      run: qmake CONFIG+=staticlib ..
-      working-directory: build
+  #   - name: QMake
+  #     run: qmake CONFIG+=staticlib ..
+  #     working-directory: build
 
-    - name: Make
-      run: nmake.exe
-      working-directory: build
+  #   - name: Make
+  #     run: nmake.exe
+  #     working-directory: build
 
-    - name: Test
-      run: nmake.exe check
-      working-directory: build
+  #   - name: Test
+  #     run: nmake.exe check
+  #     working-directory: build
 
-    - name: Clean
-      run: |
-        rm ./.q* -r -fo
-        rm ./tmp -r -fo
-        rm ./Makefile -r -fo
-      working-directory: build/src
+  #   - name: Clean
+  #     run: |
+  #       rm ./.q* -r -fo
+  #       rm ./tmp -r -fo
+  #       rm ./Makefile -r -fo
+  #     working-directory: build/src
 
-    - name: Upload
-      uses: actions/upload-artifact@v1
-      with:
-        name: release-windows
-        path: build/src
+  #   - name: Upload
+  #     uses: actions/upload-artifact@v1
+  #     with:
+  #       name: release-windows
+  #       path: build/src
 
 
 
