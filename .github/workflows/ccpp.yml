@@ -37,9 +37,10 @@ jobs:
 
     - name: Clean
       run: |
-        rm tmp -r -fo
-        rm Makefile -r -fo
-      working-directory: build
+        rm ./.* -r -fo
+        rm ./tmp -r -fo
+        rm ./Makefile -r -fo
+      working-directory: build/src
 
     - name: Upload
       uses: actions/upload-artifact@v1
@@ -80,9 +81,10 @@ jobs:
 
     - name: Clean
       run: |
-        rm -rf tmp
-        rm -rf Makefile
-      working-directory: build
+        rm -rf ./.*
+        rm -rf ./tmp
+        rm -rf ./Makefile
+      working-directory: build/src
 
     - name: Upload
       uses: actions/upload-artifact@v1
