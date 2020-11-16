@@ -141,7 +141,7 @@ void QOscMessagePrivate::compilePattern()
     QRegularExpressionMatch m;
     while((m = reg.match(copy)).hasMatch())
     {
-        auto content = QRegularExpression::escape(m.capturedView(1));
+        auto content = QRegularExpression::escape(m.captured(1));
         content.replace("\\,", "|");
         copy.replace(m.capturedStart(), m.capturedLength(), "(" + content + ")");
     }
