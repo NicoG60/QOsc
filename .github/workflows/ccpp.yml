@@ -33,6 +33,8 @@ jobs:
 
     - name: Test
       run: nmake.exe check
+      env:
+        PATH: ${{ env.PATH }};${{ github.workspace }}/build/src/lib
       working-directory: build
 
     - name: Clean
@@ -77,6 +79,8 @@ jobs:
 
     - name: Test
       run: make check
+      env:
+        DYDL_LIBRARY_PATH: ${{ env.DYDL_LIBRARY_PATH }}:${{ github.workspace }}/build/src/lib
       working-directory: build
 
     - name: Clean

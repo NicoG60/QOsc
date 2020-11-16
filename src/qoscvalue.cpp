@@ -111,6 +111,59 @@ QOscValuePrivate* QOscValuePrivate::newCopyFrom(QOscValuePrivate* src)
     return dst;
 }
 
+bool QOscValuePrivate::compare(QOscValuePrivate* a, QOscValuePrivate* b)
+{
+    if(a->type != b->type)
+        return false;
+
+    switch(a->type)
+    {
+    case QOsc::CharType:
+    case QOsc::Int32Type:
+        return QOSC_PRIVATE_EQ(a, b, QOscInt32Private, i);
+        break;
+
+    case QOsc::Int64Type:
+        return QOSC_PRIVATE_EQ(a, b, QOscInt64Private, i);
+        break;
+
+    case QOsc::Float32Type:
+        return QOSC_PRIVATE_EQ(a, b, QOscFloat32Private, f);
+        break;
+
+    case QOsc::Float64Type:
+        return QOSC_PRIVATE_EQ(a, b, QOscFloat64Private, f);
+        break;
+
+    case QOsc::ColorType:
+        return QOSC_PRIVATE_EQ(a, b, QOscColorPrivate, c);
+        break;
+
+    case QOsc::SymbolType:
+    case QOsc::StringType:
+        return QOSC_PRIVATE_EQ(a, b, QOscStringPrivate, str);
+        break;
+
+    case QOsc::BlobType:
+        return QOSC_PRIVATE_EQ(a, b, QOscBlobPrivate, data);
+        break;
+
+    case QOsc::TimeTagType:
+        return QOSC_PRIVATE_EQ(a, b, QOscTimeTagPrivate, t);
+        break;
+
+    case QOsc::MidiType:
+        return QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, port)
+                && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, status)
+                && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, data1)
+                && QOSC_PRIVATE_EQ(a, b, QOscMidiPrivate, data2);
+        break;
+
+    default:
+        return false;
+    }
+}
+
 
 
 // =============================================================================
@@ -540,6 +593,16 @@ QOscValue& QOscValue::operator =(const QDateTime& value)
 
     d_ptr->fromTimeTag(value);
     return *this;
+}
+
+bool QOscValue::operator ==(const QOscValue& other) const
+{
+    return QOscValuePrivate::compare(d_ptr.data(), other.d_ptr.data());
+}
+
+bool QOscValue::operator !=(const QOscValue& other) const
+{
+    return !(*this == other);
 }
 
 QOscValue QOscValue::fromUnixTimestamp(qint64 t)

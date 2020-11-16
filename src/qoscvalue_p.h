@@ -17,6 +17,9 @@
 #define QOSC_PRIVATE_COPY(FROM, TO, CLASS, VAR) \
     dynamic_cast<CLASS*>(TO)->VAR = dynamic_cast<CLASS*>(FROM)->VAR;
 
+#define QOSC_PRIVATE_EQ(A, B, CLASS, VAR) \
+    dynamic_cast<CLASS*>(A)->VAR == dynamic_cast<CLASS*>(B)->VAR
+
 class QOscValuePrivate
 {
 public:
@@ -66,6 +69,7 @@ public:
     static QOscValuePrivate* newFromType(QOsc::ValueType t);
     static void copy(QOscValuePrivate* src, QOscValuePrivate* dst);
     static QOscValuePrivate* newCopyFrom(QOscValuePrivate* src);
+    static bool compare(QOscValuePrivate* a, QOscValuePrivate* b);
 
     const QOsc::ValueType type;
 };

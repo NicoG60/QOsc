@@ -104,6 +104,9 @@ public:
     QOscValue& operator =(const QByteArray& value);
     QOscValue& operator =(const QDateTime& value);
 
+    bool operator ==(const QOscValue& other) const;
+    bool operator !=(const QOscValue& other) const;
+
     static QOscValue fromUnixTimestamp(qint64 t);
 
     static QOscValue asap();
