@@ -1,12 +1,10 @@
 #ifndef QOSCBUNDLE_H
 #define QOSCBUNDLE_H
 
-#include "qosc_global.h"
-
 #include "qoscmessage.h"
 
 class QOscBundlePrivate;
-class QOSC_EXPORT QOscBundle : public QList<QOscMessage>
+class QOscBundle : public QList<QOscMessage>
 {
 public:
     QOscBundle();

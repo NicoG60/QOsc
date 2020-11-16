@@ -1,8 +1,8 @@
 #ifndef QOSCMESSAGE_H
 #define QOSCMESSAGE_H
 
-#include "qosc_global.h"
 #include "qoscvalue.h"
+#include "qosc_global.h"
 
 #include <QList>
 #include <QVector>
@@ -16,7 +16,7 @@
 class QOscBundle;
 class QOscMessagePrivate;
 
-class QOSC_EXPORT QOscMessage : public QList<QOscValue>
+class QOscMessage : public QList<QOscValue>
 {
 public:
     QOscMessage();

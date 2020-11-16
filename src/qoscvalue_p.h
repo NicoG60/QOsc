@@ -1,7 +1,8 @@
 #ifndef QOSCVALUE_P_H
 #define QOSCVALUE_P_H
 
-#include <qosc_global.h>
+#include <qosc.h>
+
 #include <QtEndian>
 #include <QIODevice>
 #include <QColor>

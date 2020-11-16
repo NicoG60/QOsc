@@ -1,14 +1,13 @@
 #ifndef QOSCINTERFACE_H
 #define QOSCINTERFACE_H
 
-#include "qosc_global.h"
 #include "qoscmethod.h"
 #include "qoscmessage.h"
 #include "qoscbundle.h"
 #include <QHostAddress>
 
 class QOscInterfacePrivate;
-class QOSC_EXPORT QOscInterface :  public QObject
+class QOscInterface :  public QObject
 {
     Q_OBJECT
 

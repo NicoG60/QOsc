@@ -2,6 +2,7 @@
 #define QOSCVALUE_H
 
 #include "qosc_global.h"
+
 #include <QIODevice>
 #include <QSharedPointer>
 #include <QColor>
@@ -16,7 +17,7 @@
     bool is##FType() const;
 
 class QOscValuePrivate;
-class QOSC_EXPORT QOscValue
+class QOscValue
 {
     friend class QOscMessage;
     friend class QOscMessagePrivate;

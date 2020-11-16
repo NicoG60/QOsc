@@ -302,7 +302,5 @@ void QOscInterface::readReady()
     d_func()->readReady();
 }
 
-# include "moc_qoscinterface.cpp"
-
 
 

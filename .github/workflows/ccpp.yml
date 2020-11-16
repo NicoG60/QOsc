@@ -39,7 +39,6 @@ jobs:
 
     - name: Clean
       run: |
-        rm .* -r -fo
         rm tmp -r -fo
         rm Makefile -r -fo
       working-directory: build
@@ -85,7 +84,6 @@ jobs:
 
     - name: Clean
       run: |
-        rm -rf .*
         rm -rf tmp
         rm -rf Makefile
       working-directory: build
