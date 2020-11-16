@@ -33,8 +33,6 @@ jobs:
 
     - name: Test
       run: nmake.exe check
-      env:
-        PATH: ${{ env.PATH }};${{ github.workspace }}/build/src/lib
       working-directory: build
 
     - name: Clean
@@ -78,8 +76,6 @@ jobs:
 
     - name: Test
       run: make check
-      env:
-        DYLD_INSERT_LIBRARIES: ${{ github.workspace }}/build/src/lib/libQOsc.1.dylib
       working-directory: build
 
     - name: Clean
