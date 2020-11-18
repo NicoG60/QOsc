@@ -7,6 +7,9 @@
 
 #include <QBuffer>
 
+#define _STR(x) #x
+#define STRINGIFY(x) _STR(x)
+
 namespace QOsc
 {
 
@@ -32,6 +35,21 @@ PacketType detectType(QIODevice* dev)
 {
     auto data = dev->peek(1);
     return detectType(data);
+}
+
+QString version()
+{
+    return QStringLiteral(STRINGIFY(SOFT_VERSION));
+}
+
+QString commit()
+{
+    return QStringLiteral(STRINGIFY(GIT_VERSION));
+}
+
+QString displayVersion()
+{
+    return QStringLiteral("QOsc v%1 (%2)").arg(version()).arg(commit());
 }
 
 }

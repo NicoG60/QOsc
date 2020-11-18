@@ -67,6 +67,8 @@ signals:
     void messageReceived(const QOscMessage& msg);
     void bundleReceived(const QOscBundle& bundle);
 
+    void messageSent();
+
 private:
     Q_DECLARE_PRIVATE(QOscInterface);
     Q_DISABLE_COPY(QOscInterface);

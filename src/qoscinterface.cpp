@@ -98,6 +98,7 @@ void QOscInterfacePrivate::setLocalAddr(const QHostAddress& addr)
 void QOscInterfacePrivate::send(const QByteArray& data)
 {
     socket.writeDatagram(data, remoteAddr, remotePort);
+    q_func()->messageSent();
 }
 
 void QOscInterfacePrivate::readReady()
