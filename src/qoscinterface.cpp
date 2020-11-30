@@ -285,11 +285,17 @@ void QOscInterface::disconnect(const QString& addr)
 
 void QOscInterface::send(const QOscMessage& m)
 {
+    if(!m.isValid())
+        return;
+
     d_func()->send(m.package());
 }
 
 void QOscInterface::send(const QOscBundle& b)
 {
+    if(!b.isValid())
+        return;
+
     d_func()->send(b.package());
 }
 
