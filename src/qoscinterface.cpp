@@ -15,7 +15,7 @@ public:
 
     void rebind();
     void updateLocalAddr();
-    void setLocalAddr(const QHostAddress& addr);
+    void setLocalAddr(const QString& addr);
     void send(const QByteArray& data);
 
     void readReady();
@@ -56,7 +56,13 @@ void QOscInterfacePrivate::rebind()
             socket.waitForDisconnected();
     }
 
-    isListening = socket.bind(localPort);
+    bool state = socket.bind(localPort);
+
+    if(state != isListening)
+    {
+        isListening = state;
+        q_func()->isListeningChanged();
+    }
 
     if(socket.localPort() != localPort)
     {
@@ -79,18 +85,19 @@ void QOscInterfacePrivate::updateLocalAddr()
 
             if(remoteAddr.isInSubnet(p))
             {
-                setLocalAddr(entry.ip());
+                setLocalAddr(entry.ip().toString());
                 return;
             }
         }
     }
 }
 
-void QOscInterfacePrivate::setLocalAddr(const QHostAddress& addr)
+void QOscInterfacePrivate::setLocalAddr(const QString& addr)
 {
-    if(!addr.isNull() && !addr.isEqual(localAddr))
+    QHostAddress hostAddr(addr);
+    if(!hostAddr.isNull() && !hostAddr.isEqual(localAddr))
     {
-        localAddr = addr;
+        localAddr = hostAddr;
         q_func()->localAddrChanged(addr);
     }
 }
@@ -200,18 +207,20 @@ QOscInterface::QOscInterface(QObject* parent) :
     d->rebind();
 }
 
-QHostAddress QOscInterface::remoteAddr() const
+QString QOscInterface::remoteAddr() const
 {
-    return d_func()->remoteAddr;
+    return d_func()->remoteAddr.toString();
 }
 
-void QOscInterface::setRemoteAddr(const QHostAddress& addr)
+void QOscInterface::setRemoteAddr(const QString& addr)
 {
     Q_D(QOscInterface);
 
-    if(addr != d->remoteAddr)
+    QHostAddress hostAddr(addr);
+
+    if(hostAddr != d->remoteAddr)
     {
-        d->remoteAddr = addr;
+        d->remoteAddr = hostAddr;
         remoteAddrChanged(addr);
         d->updateLocalAddr();
     }
@@ -233,9 +242,9 @@ void QOscInterface::setRemotePort(quint16 p)
     }
 }
 
-QHostAddress QOscInterface::localAddr() const
+QString QOscInterface::localAddr() const
 {
-    return d_func()->localAddr;
+    return d_func()->localAddr.toString();
 }
 
 quint16 QOscInterface::localPort() const
