@@ -5,92 +5,31 @@ on:
     branches: [ master ]
 
 jobs:
-  # build-windows:
-  #   runs-on: windows-latest
+  test:
 
-  #   steps:
-  #   - name: Get sources
-  #     uses: actions/checkout@v2
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
-  #   - name: Configure Windows env
-  #     uses: ilammy/msvc-dev-cmd@v1
-
-  #   - name: Get Qt
-  #     uses: jurplel/install-qt-action@v2
-  #     with:
-  #       modules: 'core gui network'
-
-  #   - name: Make build dir
-  #     run: mkdir build
-
-  #   - name: QMake
-  #     run: qmake ..
-  #     working-directory: build
-
-  #   - name: Make
-  #     run: nmake.exe
-  #     working-directory: build
-
-  #   - name: Test
-  #     run: nmake.exe check
-  #     env:
-  #       PATH: ${{ env.PATH }};${{ github.workspace }}/build/src/lib
-  #     working-directory: build
-
-  #   - name: Clean
-  #     run: |
-  #       rm ./.q* -r -fo
-  #       rm ./tmp -r -fo
-  #       rm ./Makefile -r -fo
-  #     working-directory: build/src
-
-  #   - name: Upload
-  #     uses: actions/upload-artifact@v1
-  #     with:
-  #       name: release-windows
-  #       path: build/src
-
-
-
-
-
-  build-macos:
-    runs-on: macOS-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Get sources
-      uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Get Qt
-      uses: jurplel/install-qt-action@v2
-      with:
-        modules: 'core gui network'
+      - uses: jurplel/install-qt-action@v2
+        with:
+          modules: core gui network test
 
-    - name: Make build dir
-      run: mkdir build
+      - run: cmake -DCMAKE_INSTALL_PREFIX=dist -DQOSC_BUILD_TESTS=ON -S . -B build
 
-    - name: QMake
-      run: qmake CONFIG+=staticlib ..
-      working-directory: build
+      - run: cmake --build build
 
-    - name: Make
-      run: make
-      working-directory: build
+      - run: ctest
+        worker-directory: build
 
-    - name: Test
-      run: make check
-      working-directory: build
+      - run: cmake --install build
 
-    - name: Clean
-      run: |
-        rm -rf ./.q*
-        rm -rf ./tmp
-        rm -rf ./Makefile
-      working-directory: build/src
-
-    - name: Upload
-      uses: actions/upload-artifact@v1
-      with:
-        name: release-macos
-        path: build/src
-      
+      - uses: actions/upload-artifact@v1
+        with:
+          name: release-${{ runner.os }}
+          path: dist

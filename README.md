@@ -3,53 +3,28 @@ Qt based library that implement the OSC protocol
 
 ![version](https://img.shields.io/github/v/release/NicoG60/QOSC) ![license](https://img.shields.io/github/license/NicoG60/Qosc) ![C/C++ CI](https://github.com/NicoG60/QOsc/workflows/C/C++%20CI/badge.svg?branch=master)
 
-## Table Of Content
 
-[TOC]
 
-## Building
+## Features
 
-As simple as it seems
+- Send and receive OSC packets from the network
+- Easily make OSC packets to be sent
+- Read/Write OSC packets to en external source
 
-```console
-$ mkdir build && cd build
-$ qmake .. && make
+## Building & Integrating
+
+It is a CMake project. you can either build it using:
+
+```bash
+cmake -S . -B build
+cmake --build build
 ```
 
-## QMAKE Integration
+Or use it as a subdirectory
 
-A simple way to integrate it is to make a subdir project where the lib is build as part of the whole project and manage linking in individual projects.
-
-For example
-
-```qmake
-# ==== RootProject.pro
-
-TEMPLATE = subdirs
-
-SUBDIRS += \
-    src \
-    tests \
-    qosc
-
-# Points to source tree
-qosc.subdir = path/to/qosc
-
-# Manage dependencies
-tests.depends = src
-src.depends = qosc
-```
-
-```qmake
-# ==== src.pro
-
-# ...
-# ... All your sources, configs, etc...
-# ...
-
-# Link
-INCLUDEPATH += $$PWD/path/to/qosc/include
-LIBS += -L$$OUT_PWD/../qosc/lib -lQOsc
+```cmake
+add_subdirectory(path/to/QOsc)
+target_link_libraries(mytarget QOsc)
 ```
 
 ## Usage
