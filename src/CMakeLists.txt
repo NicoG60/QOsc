@@ -22,6 +22,7 @@ target_include_directories(
     PRIVATE
         ${Qt5Core_PRIVATE_INCLUDE_DIRS}
 )
+target_compile_definitions(QOsc PRIVATE QOSC_LIBRARY)
 
 # install
 install(TARGETS QOsc EXPORT QOsc DESTINATION ${lib_dest})
