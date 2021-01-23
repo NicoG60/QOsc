@@ -51,9 +51,9 @@ interface::~interface() {}
 void interface::initTestCase()
 {
     QSignalSpy spyLocalPort(&test, SIGNAL(localPortChanged(quint16)));
-    QSignalSpy spyLocalAddr(&test, SIGNAL(localAddrChanged(QHostAddress)));
+    QSignalSpy spyLocalAddr(&test, SIGNAL(localAddrChanged(QString)));
     QSignalSpy spyRemotePort(&test, SIGNAL(remotePortChanged(quint16)));
-    QSignalSpy spyRemoteAddr(&test, SIGNAL(remoteAddrChanged(QHostAddress)));
+    QSignalSpy spyRemoteAddr(&test, SIGNAL(remoteAddrChanged(QString)));
 
     test.setLocalPort(localPort);
     test.setRemoteAddr(remoteAddr);
@@ -224,18 +224,18 @@ void interface::test_readme_server()
         }
     });
 
-    // Alternatively you can use any QObject slots
-    QObject obj;
-    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOscMessage& msg)));
+//    // Alternatively you can use any QObject slots
+//    QObject obj;
+//    iface.connect("/my/other/pattern", &obj, SLOT(mySlot(const QOscMessage& msg)));
 
-    // Or get all messages and dispatch them yourself
-    QObject dispatcher;
+//    // Or get all messages and dispatch them yourself
+//    QObject dispatcher;
 
-    QObject::connect(&iface,      SIGNAL(messageReceived(const QOscMessage&)),
-                     &dispatcher, SLOT(dispatchMessage(const QOscMessage&)));
+//    QObject::connect(&iface,      SIGNAL(messageReceived(const QOscMessage&)),
+//                     &dispatcher, SLOT(dispatchMessage(const QOscMessage&)));
 
-    QObject::connect(&iface,      SIGNAL(bundleReceived(const QOscBundle&)),
-                     &dispatcher, SLOT(dispatchBundle(const QOscBundle&)));
+//    QObject::connect(&iface,      SIGNAL(bundleReceived(const QOscBundle&)),
+//                     &dispatcher, SLOT(dispatchBundle(const QOscBundle&)));
 }
 
 void interface::test_readme_client()
