@@ -31,7 +31,7 @@ jobs:
 
       - run: cmake --build build
 
-      - run: ctest
+      - run: ctest --output-on-failure
         working-directory: build
 
       - run: cmake --install build
