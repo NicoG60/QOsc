@@ -11,7 +11,7 @@ class QOscInterfacePrivate : public QObjectPrivate
     Q_DECLARE_PUBLIC(QOscInterface);
 
 public:
-    QOscInterfacePrivate();
+    QOscInterfacePrivate() {};
 
     void rebind();
     void updateLocalAddr();
@@ -25,26 +25,16 @@ public:
     void processBundle(const QOscBundle& b);
     void executeBundle(const QOscBundle& b);
 
-    QHostAddress remoteAddr;
-    quint16      remotePort;
-    QHostAddress localAddr;
-    quint16      localPort;
+    QHostAddress remoteAddr = QHostAddress("127.0.0.1");
+    quint16      remotePort = 0;
+    QHostAddress localAddr  = QHostAddress("127.0.0.1");
+    quint16      localPort  = 0;
     QUdpSocket   socket;
 
-    bool isListening;
+    bool isListening = false;
 
     QList<QOscMethod::ptr> methods;
 };
-
-QOscInterfacePrivate::QOscInterfacePrivate() :
-    QObjectPrivate(),
-    remoteAddr("127.0.0.1"),
-    remotePort(0),
-    localAddr("127.0.0.1"),
-    localPort(0),
-    isListening(false)
-{
-}
 
 void QOscInterfacePrivate::rebind()
 {
@@ -61,13 +51,13 @@ void QOscInterfacePrivate::rebind()
     if(state != isListening)
     {
         isListening = state;
-        q_func()->isListeningChanged();
+        emit q_func()->isListeningChanged();
     }
 
     if(socket.localPort() != localPort)
     {
         localPort = socket.localPort();
-        q_func()->localPortChanged(localPort);
+        emit q_func()->localPortChanged(localPort);
     }
 }
 
@@ -80,7 +70,7 @@ void QOscInterfacePrivate::updateLocalAddr()
 
         for(auto& entry : iface.addressEntries())
         {
-            QString addr = QStringLiteral("%1/%2").arg(entry.ip().toString()).arg(entry.netmask().toString());
+            QString addr = QStringLiteral("%1/%2").arg(entry.ip().toString(), entry.netmask().toString());
             auto p = QHostAddress::parseSubnet(addr);
 
             if(remoteAddr.isInSubnet(p))
@@ -98,14 +88,14 @@ void QOscInterfacePrivate::setLocalAddr(const QString& addr)
     if(!hostAddr.isNull() && !hostAddr.isEqual(localAddr))
     {
         localAddr = hostAddr;
-        q_func()->localAddrChanged(addr);
+        emit q_func()->localAddrChanged(addr);
     }
 }
 
 void QOscInterfacePrivate::send(const QByteArray& data)
 {
     socket.writeDatagram(data, remoteAddr, remotePort);
-    q_func()->messageSent();
+    emit q_func()->messageSent();
 }
 
 void QOscInterfacePrivate::readReady()
@@ -125,7 +115,7 @@ void QOscInterfacePrivate::readReady()
             if(msg.isValid())
             {
                 processMessage(msg);
-                q->messageReceived(msg);
+                emit q->messageReceived(msg);
             }
             break;
         }
@@ -136,7 +126,7 @@ void QOscInterfacePrivate::readReady()
             if(bundle.isValid())
             {
                 processBundle(bundle);
-                q->bundleReceived(bundle);
+                emit q->bundleReceived(bundle);
             }
             break;
         }
@@ -176,7 +166,7 @@ void QOscInterfacePrivate::processBundle(const QOscBundle& b)
 
             ms -= now;
 
-            QTimer::singleShot(ms,
+            QTimer::singleShot(ms, q_func(),
             [this, b2]()
             {
                 processBundle(b2);
@@ -221,7 +211,7 @@ void QOscInterface::setRemoteAddr(const QString& addr)
     if(hostAddr != d->remoteAddr)
     {
         d->remoteAddr = hostAddr;
-        remoteAddrChanged(addr);
+        emit remoteAddrChanged(addr);
         d->updateLocalAddr();
     }
 }
@@ -238,7 +228,7 @@ void QOscInterface::setRemotePort(quint16 p)
     if(p != d->remotePort)
     {
         d->remotePort = p;
-        remotePortChanged(p);
+        emit remotePortChanged(p);
     }
 }
 
@@ -259,7 +249,7 @@ void QOscInterface::setLocalPort(quint16 p)
     if(p != d->localPort)
     {
         d->localPort = p;
-        localPortChanged(p);
+        emit localPortChanged(p);
         d->rebind();
     }
 }
@@ -308,7 +298,7 @@ void QOscInterface::send(const QOscBundle& b)
     d_func()->send(b.package());
 }
 
-void QOscInterface::connect(QOscMethod::ptr method)
+void QOscInterface::connect(const QOscMethod::ptr& method)
 {
     d_func()->methods.append(method);
 }

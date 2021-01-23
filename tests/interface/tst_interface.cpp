@@ -10,8 +10,8 @@ class interface : public QObject
     Q_OBJECT
 
 public:
-    interface();
-    ~interface();
+    interface() = default;
+    ~interface() override = default;
 
 private slots:
     void initTestCase();
@@ -28,8 +28,8 @@ private slots:
     void test_readme_client();
 
 public:
-    void verify_send(QByteArray comp);
-    void send(QByteArray comp);
+    void verify_send(const QByteArray& comp);
+    void send(const QByteArray& comp);
     QByteArray msgSocketError(const QAbstractSocket &s);
     QOscMessage magicMessage();
     QOscBundle magicBundle();
@@ -43,10 +43,6 @@ public:
     QOscInterface test;
     QUdpSocket    echo;
 };
-
-interface::interface() {}
-
-interface::~interface() {}
 
 void interface::initTestCase()
 {
@@ -253,10 +249,10 @@ void interface::test_readme_client()
 
     // More complex messages with several values
     QOscValue myInt(10);
-    QOscValue myMidi = QOscValue::midiValue(/*port:   0       */ 0x00,
-                                            /*status: note on */ 0x90,
-                                            /*data1:  note A4 */ 0x45,
-                                            /*data2:  note vel*/ 0x10);
+    QOscValue myMidi = QOscValue::midiValue(/*port:   0       */ qint8(0x00),
+                                            /*status: note on */ qint8(0x90),
+                                            /*data1:  note A4 */ qint8(0x45),
+                                            /*data2:  note vel*/ qint8(0x10));
     QOscValue myColor(QColor(0, 255, 0));
 
     QOscMessage msg2("/my/osc/pattern");
@@ -278,7 +274,7 @@ void interface::test_readme_client()
     iface.send(bundle);
 }
 
-void interface::verify_send(QByteArray comp)
+void interface::verify_send(const QByteArray& comp)
 {
     QVERIFY2(echo.waitForReadyRead(10000), msgSocketError(echo).constData());
 
@@ -291,7 +287,7 @@ void interface::verify_send(QByteArray comp)
     QCOMPARE(datagram.data(), comp);
 }
 
-void interface::send(QByteArray comp)
+void interface::send(const QByteArray& comp)
 {
     echo.writeDatagram(comp, QHostAddress(localAddr), localPort);
 }

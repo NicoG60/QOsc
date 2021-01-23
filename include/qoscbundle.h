@@ -9,11 +9,11 @@ class QOSC_EXPORT QOscBundle : public QList<QOscMessage>
 public:
     QOscBundle();
     QOscBundle(const QOscBundle& copy);
-    QOscBundle(QOscBundle&& move);
+    QOscBundle(QOscBundle&& move) noexcept;
     ~QOscBundle();
 
     QOscBundle& operator=(const QOscBundle&copy);
-    QOscBundle& operator=(QOscBundle&& move);
+    QOscBundle& operator=(QOscBundle&& move) noexcept;
 
     void swap(QOscBundle& other);
 

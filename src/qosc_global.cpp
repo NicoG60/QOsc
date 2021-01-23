@@ -49,7 +49,7 @@ QString commit()
 
 QString displayVersion()
 {
-    return QStringLiteral("QOsc v%1 (%2)").arg(version()).arg(commit());
+    return QStringLiteral("QOsc v%1 (%2)").arg(version(), commit());
 }
 
 }

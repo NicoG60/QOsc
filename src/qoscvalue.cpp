@@ -240,12 +240,15 @@ QOscValue::QOscValue(const QOscValue& copy)
     *this = copy;
 }
 
-QOscValue::QOscValue(QOscValue&& move)
+QOscValue::QOscValue(QOscValue&& move) noexcept
 {
     swap(move);
 }
 
-QOscValue::~QOscValue() {}
+QOscValue::~QOscValue()
+{
+    // Not using `= default` in the header because QScopedPointer doesn't allow it
+}
 
 QOscValue& QOscValue::operator=(const QOscValue& copy)
 {
@@ -257,7 +260,7 @@ QOscValue& QOscValue::operator=(const QOscValue& copy)
     return *this;
 }
 
-QOscValue& QOscValue::operator=(QOscValue&& move)
+QOscValue& QOscValue::operator=(QOscValue&& move) noexcept
 {
     swap(move);
     return *this;

@@ -44,11 +44,11 @@ public:
     QOscValue(const QDateTime& value);
 
     QOscValue(const QOscValue& copy);
-    QOscValue(QOscValue&& move);
+    QOscValue(QOscValue&& move) noexcept;
     ~QOscValue();
 
     QOscValue& operator=(const QOscValue& copy);
-    QOscValue& operator=(QOscValue&& move);
+    QOscValue& operator=(QOscValue&& move) noexcept;
 
     void swap(QOscValue& other);
 

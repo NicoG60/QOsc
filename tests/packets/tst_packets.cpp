@@ -11,8 +11,8 @@ class packets : public QObject
     Q_OBJECT
 
 public:
-    packets();
-    ~packets();
+    packets() = default;
+    ~packets() override = default;
 
 private slots:
     void test_message();
@@ -23,10 +23,6 @@ private slots:
     void test_bundle();
 
 };
-
-packets::packets() {}
-
-packets::~packets() {}
 
 void packets::test_message()
 {

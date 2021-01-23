@@ -12,7 +12,7 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 
 # define library target
 add_library(QOsc ${headers} ${src})
-target_link_libraries(QOsc Qt5::Core Qt5::Gui Qt5::Network)
+target_link_libraries(QOsc PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
 target_include_directories(
     QOsc
     PUBLIC

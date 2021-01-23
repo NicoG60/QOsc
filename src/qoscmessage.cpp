@@ -171,7 +171,7 @@ QOscMessage::QOscMessage(const QOscMessage& copy) :
     *this = copy;
 }
 
-QOscMessage::QOscMessage(QOscMessage&& move)
+QOscMessage::QOscMessage(QOscMessage&& move) noexcept
 {
     swap(move);
 }
@@ -183,7 +183,10 @@ QOscMessage::QOscMessage(const QString& pattern) :
     d_ptr->compilePattern();
 }
 
-QOscMessage::~QOscMessage() {}
+QOscMessage::~QOscMessage()
+{
+    // Not using `= default` in the header because QScopedPointer doesn't allow it
+}
 
 QOscMessage& QOscMessage::operator=(const QOscMessage& copy)
 {
@@ -193,7 +196,7 @@ QOscMessage& QOscMessage::operator=(const QOscMessage& copy)
     return *this;
 }
 
-QOscMessage& QOscMessage::operator=(QOscMessage&& move)
+QOscMessage& QOscMessage::operator=(QOscMessage&& move) noexcept
 {
     swap(move);
     return *this;

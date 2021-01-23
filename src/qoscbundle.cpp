@@ -87,12 +87,15 @@ QOscBundle::QOscBundle(const QOscBundle& copy) :
     *this = copy;
 }
 
-QOscBundle::QOscBundle(QOscBundle&& move)
+QOscBundle::QOscBundle(QOscBundle&& move) noexcept
 {
     swap(move);
 }
 
-QOscBundle::~QOscBundle() {}
+QOscBundle::~QOscBundle()
+{
+    // Not using `= default` in the header because QScopedPointer doesn't allow it
+}
 
 QOscBundle& QOscBundle::operator=(const QOscBundle& copy)
 {
@@ -102,7 +105,7 @@ QOscBundle& QOscBundle::operator=(const QOscBundle& copy)
     return *this;
 }
 
-QOscBundle& QOscBundle::operator=(QOscBundle&& move)
+QOscBundle& QOscBundle::operator=(QOscBundle&& move) noexcept
 {
     swap(move);
     return *this;

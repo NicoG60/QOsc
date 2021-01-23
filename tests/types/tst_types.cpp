@@ -8,8 +8,8 @@ class types : public QObject
     Q_OBJECT
 
 public:
-    types();
-    ~types();
+    types() = default;
+    ~types() override = default;
 
     template<class F, class T>
     void test_ctor(QOscValue* obj, F fp, T value1, T value2)
@@ -38,10 +38,6 @@ private slots:
     void test_midi();
     void test_litteral();
 };
-
-types::types() {}
-
-types::~types() {}
 
 void types::test_int32()
 {

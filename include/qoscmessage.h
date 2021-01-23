@@ -21,7 +21,7 @@ class QOSC_EXPORT QOscMessage : public QList<QOscValue>
 public:
     QOscMessage();
     QOscMessage(const QOscMessage& copy);
-    QOscMessage(QOscMessage&& move);
+    QOscMessage(QOscMessage&& move) noexcept;
     QOscMessage(const QString& pattern);
 
     template<class T>
@@ -34,7 +34,7 @@ public:
     ~QOscMessage();
 
     QOscMessage& operator=(const QOscMessage& copy);
-    QOscMessage& operator=(QOscMessage&& move);
+    QOscMessage& operator=(QOscMessage&& move) noexcept;
 
     void swap(QOscMessage& other);
 

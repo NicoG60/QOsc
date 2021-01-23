@@ -73,7 +73,7 @@ signals:
 private:
     Q_DECLARE_PRIVATE(QOscInterface);
     Q_DISABLE_COPY(QOscInterface);
-    void connect(QOscMethod::ptr method);
+    void connect(const QOscMethod::ptr& method);
 
 private slots:
     void readReady();
