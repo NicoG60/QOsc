@@ -51,13 +51,6 @@ public:
         send(msg);
     }
 
-    template<>
-    void send(const QString& pattern, const QOscValue& arg)
-    {
-        QOscMessage msg(pattern, arg);
-        send(msg);
-    }
-
 public slots:
     void send(const QOscMessage& m);
 
