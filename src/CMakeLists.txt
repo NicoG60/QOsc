@@ -1,6 +1,6 @@
 # set headers
 set(header_path "${QOSC_SOURCE_DIR}/include")
-file(GLOB headers ${header_path}/*.h)
+file(GLOB headers ${header_path}/QO* ${header_path}/qo*)
 
 # set sources
 file(GLOB src *.cpp)
