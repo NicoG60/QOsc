@@ -24,7 +24,5 @@ target_include_directories(
 )
 
 # install
-if(${QOSC_INSTALL})
-    install(TARGETS QOsc EXPORT QOsc DESTINATION ${lib_dest})
-    install(FILES ${headers} DESTINATION ${include_dest})
-endif()
+install(TARGETS QOsc EXPORT QOsc DESTINATION ${lib_dest})
+install(FILES ${headers} DESTINATION ${include_dest})

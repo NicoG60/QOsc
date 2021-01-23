@@ -18,17 +18,6 @@ if(CMAKE_VERSION VERSION_LESS "3.7.0")
     set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-
-# Check if Qosc is being used directly or via add_subdirectory, but allow overriding
-if(NOT DEFINED QOSC_MASTER_PROJECT)
-    if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-        set(QOSC_MASTER_PROJECT ON)
-    else()
-        set(QOSC_MASTER_PROJECT OFF)
-    endif()
-endif()
-
-option(QOSC_INSTALL     "Generate install targets" ${NUMPYCPP_MASTER_PROJECT})
 option(QOSC_BUILD_TESTS "Build the unit tests"  OFF)
 
 if(${QOSC_BUILD_TESTS})
@@ -44,7 +33,5 @@ add_subdirectory(src)
 add_subdirectory(tests)
 
 # install
-if(${QOsc_INSTALL})
-    install(FILES QOsc-config.cmake DESTINATION ${lib_dest})
-    install(EXPORT QOsc DESTINATION ${lib_dest})
-endif()
+install(FILES QOsc-config.cmake DESTINATION ${lib_dest})
+install(EXPORT QOsc DESTINATION ${lib_dest})
