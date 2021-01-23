@@ -31,13 +31,6 @@ public:
         append(QOscValue(arg));
     }
 
-    template<>
-    QOscMessage(const QString& pattern, const QOscValue& arg) :
-        QOscMessage(pattern)
-    {
-        append(arg);
-    }
-
     ~QOscMessage();
 
     QOscMessage& operator=(const QOscMessage& copy);
