@@ -32,6 +32,8 @@ jobs:
       - run: cmake --build build
 
       - run: ctest --output-on-failure
+        env:
+          QT_QPA_PLATFORM: offscreen
         working-directory: build
 
       - run: cmake --install build
