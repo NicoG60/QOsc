@@ -24,7 +24,7 @@ Or use it as a subdirectory
 
 ```cmake
 add_subdirectory(path/to/QOsc)
-target_link_libraries(mytarget QOsc)
+target_link_libraries(mytarget QOsc EXCLUDE_FROM_ALL)
 ```
 
 ## Usage
