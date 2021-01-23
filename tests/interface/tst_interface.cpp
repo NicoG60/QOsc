@@ -35,10 +35,10 @@ public:
     QOscBundle magicBundle();
 
 public:
-    const QHostAddress localAddr{"127.0.0.1"};
-    const quint16      localPort = 8000;
-    const QHostAddress remoteAddr{"127.0.0.1"};
-    const quint16      remotePort = 9000;
+    const QString localAddr{"127.0.0.1"};
+    const quint16 localPort = 8000;
+    const QString remoteAddr{"127.0.0.1"};
+    const quint16 remotePort = 9000;
 
     QOscInterface test;
     QUdpSocket    echo;
@@ -74,7 +74,7 @@ void interface::initTestCase()
     QCOMPARE(test.remoteAddr(), remoteAddr);
     QCOMPARE(test.remotePort(), remotePort);
 
-    echo.bind(remoteAddr, remotePort);
+    echo.bind(QHostAddress(remoteAddr), remotePort);
     QVERIFY(QTest::qWaitFor([=](){return echo.isValid();}));
 }
 
@@ -199,7 +199,7 @@ void interface::test_readme_server()
 {
     // Bind the network interface so you can send and get messages
     QOscInterface iface;
-    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemoteAddr("192.168.0.10");
     iface.setRemotePort(9000);
     iface.setLocalPort(8000);
 
@@ -242,7 +242,7 @@ void interface::test_readme_client()
 {
     // Bind the network interface so you can send and get messages
     QOscInterface iface;
-    iface.setRemoteAddr(QHostAddress("192.168.0.10"));
+    iface.setRemoteAddr("192.168.0.10");
     iface.setRemotePort(9000);
     iface.setLocalPort(8000);
 
@@ -293,7 +293,7 @@ void interface::verify_send(QByteArray comp)
 
 void interface::send(QByteArray comp)
 {
-    echo.writeDatagram(comp, localAddr, localPort);
+    echo.writeDatagram(comp, QHostAddress(localAddr), localPort);
 }
 
 QByteArray interface::msgSocketError(const QAbstractSocket &s)
