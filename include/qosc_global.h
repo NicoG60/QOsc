@@ -47,6 +47,11 @@ enum PacketType
 PacketType detectType(const QByteArray& data);
 PacketType detectType(QIODevice* dev);
 
+QString version();
+QString commit();
+
+QString displayVersion();
+
 }
 
 #endif // QOSC_GLOBAL_H

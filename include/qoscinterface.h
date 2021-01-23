@@ -11,16 +11,22 @@ class QOSC_EXPORT QOscInterface :  public QObject
 {
     Q_OBJECT
 
+    Q_PROPERTY(QString remoteAddr READ remoteAddr WRITE setRemoteAddr NOTIFY remoteAddrChanged)
+    Q_PROPERTY(quint16 remotePort READ remotePort WRITE setRemotePort NOTIFY remotePortChanged)
+    Q_PROPERTY(QString localAddr READ localAddr NOTIFY localAddrChanged)
+    Q_PROPERTY(quint16 localPort READ localPort WRITE setLocalPort NOTIFY localPortChanged)
+    Q_PROPERTY(bool isListening READ isListening NOTIFY isListeningChanged)
+
 public:
     QOscInterface(QObject* parent = nullptr);
 
-    QHostAddress remoteAddr() const;
-    void setRemoteAddr(const QHostAddress& addr);
+    QString remoteAddr() const;
+    void setRemoteAddr(const QString& addr);
 
     quint16 remotePort() const;
     void setRemotePort(quint16 p);
 
-    QHostAddress localAddr() const;
+    QString localAddr() const;
 
     quint16 localPort() const;
     void setLocalPort(quint16 p);
@@ -58,14 +64,18 @@ public slots:
     void send(const QOscBundle& b);
 
 signals:
-    void remoteAddrChanged(const QHostAddress& addr);
+    void remoteAddrChanged(const QString& addr);
     void remotePortChanged(quint16 port);
 
-    void localAddrChanged(const QHostAddress& addr);
+    void localAddrChanged(const QString& addr);
     void localPortChanged(quint16 port);
+
+    void isListeningChanged();
 
     void messageReceived(const QOscMessage& msg);
     void bundleReceived(const QOscBundle& bundle);
+
+    void messageSent();
 
 private:
     Q_DECLARE_PRIVATE(QOscInterface);
@@ -75,7 +85,5 @@ private:
 private slots:
     void readReady();
 };
-
-Q_DECLARE_METATYPE(QHostAddress);
 
 #endif // QOSCINTERFACE_H
