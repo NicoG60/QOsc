@@ -23,6 +23,8 @@ target_include_directories(
         ${Qt5Core_PRIVATE_INCLUDE_DIRS}
 )
 target_compile_definitions(QOsc PRIVATE QOSC_LIBRARY)
+target_compile_definitions(QOsc PRIVATE SOFT_VERSION=${PROJECT_VERSION})
+target_compile_definitions(QOsc PRIVATE GIT_VERSION=${GIT_VERSION})
 
 # install
 install(TARGETS QOsc EXPORT QOsc DESTINATION ${lib_dest})
