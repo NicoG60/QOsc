@@ -6,13 +6,17 @@ file(GLOB headers ${header_path}/QO* ${header_path}/qo*)
 file(GLOB src *.cpp)
 
 # setup deps
-find_package(Qt5 COMPONENTS Core REQUIRED)
-find_package(Qt5 COMPONENTS Gui REQUIRED)
-find_package(Qt5 COMPONENTS Network REQUIRED)
+if(NOT TARGET Qt::Core)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    set(Qt "Qt${QT_VERSION_MAJOR}")
+    find_package(${Qt} COMPONENTS Core REQUIRED)
+    find_package(${Qt} COMPONENTS Gui REQUIRED)
+    find_package(${Qt} COMPONENTS Network REQUIRED)
+endif()
 
 # define library target
 add_library(QOsc ${headers} ${src})
-target_link_libraries(QOsc PUBLIC Qt5::Core Qt5::Gui Qt5::Network)
+target_link_libraries(QOsc PUBLIC Qt::Core Qt::Gui Qt::Network)
 target_include_directories(
     QOsc
     PUBLIC
