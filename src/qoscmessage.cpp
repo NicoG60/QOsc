@@ -53,7 +53,7 @@ void QOscMessagePrivate::load(QIODevice* dev)
     static QRegularExpression reg(R"(^,[ifsbhtdScrmTFNI]*$)");
     if(reg.match(tmptags).hasMatch())
     {
-        for(auto& t : tmptags.midRef(1))
+        for(auto& t : tmptags.mid(1))
         {
             switch (t.toLatin1())
             {
