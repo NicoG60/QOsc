@@ -1,17 +1,16 @@
 #include <qoscinterface.h>
-#include <private/qobject_p.h>
 #include <QBuffer>
 #include <QNetworkDatagram>
 #include <QTimer>
 #include <QNetworkInterface>
 #include <QUdpSocket>
 
-class QOscInterfacePrivate : public QObjectPrivate
+class QOscInterfacePrivate
 {
     Q_DECLARE_PUBLIC(QOscInterface);
 
 public:
-    QOscInterfacePrivate() {};
+    QOscInterfacePrivate() = default;
 
     void rebind();
     void updateLocalAddr();
@@ -24,6 +23,8 @@ public:
 
     void processBundle(const QOscBundle& b);
     void executeBundle(const QOscBundle& b);
+
+    QOscInterface* q_ptr = nullptr;
 
     QHostAddress remoteAddr = QHostAddress("127.0.0.1");
     quint16      remotePort = 0;
@@ -189,9 +190,11 @@ void QOscInterfacePrivate::executeBundle(const QOscBundle& b)
 
 
 QOscInterface::QOscInterface(QObject* parent) :
-    QObject(*new QOscInterfacePrivate(), parent)
+    QObject(parent),
+    d_ptr(new QOscInterfacePrivate())
 {
     Q_D(QOscInterface);
+    d->q_ptr = this;
     QObject::connect(&d->socket, &QAbstractSocket::readyRead,
                      this,       &QOscInterface::readReady);
     d->rebind();
@@ -273,7 +276,7 @@ void QOscInterface::disconnect(const QString& addr)
 {
     Q_D(QOscInterface);
 
-    for(auto it = d->methods.begin(); it != d->methods.end();)
+    for(auto it = d->methods.cbegin(); it != d->methods.cend();)
     {
         if((*it)->addr == addr)
             it = d->methods.erase(it);

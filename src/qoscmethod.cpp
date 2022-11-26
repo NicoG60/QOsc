@@ -11,5 +11,5 @@ QOscSlotMethod::QOscSlotMethod(const QString& addr, QObject* obj, const char* sl
 
 void QOscSlotMethod::call(const QOscMessage& msg)
 {
-    QMetaObject::invokeMethod(_obj, _slot, Qt::DirectConnection, Q_ARG(const QOscMessage&, msg));
+    QMetaObject::invokeMethod(_obj, _slot, Qt::DirectConnection, Q_ARG(QOscMessage, msg));
 }

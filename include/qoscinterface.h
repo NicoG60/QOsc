@@ -73,6 +73,8 @@ signals:
 private:
     Q_DECLARE_PRIVATE(QOscInterface);
     Q_DISABLE_COPY(QOscInterface);
+    QScopedPointer<QOscInterfacePrivate> d_ptr;
+
     void connect(const QOscMethod::ptr& method);
 
 private slots:
