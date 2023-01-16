@@ -1,7 +1,7 @@
 # QOsc
 Qt based library that implement the OSC protocol
 
-![version](https://img.shields.io/github/v/release/NicoG60/QOSC) ![license](https://img.shields.io/github/license/NicoG60/Qosc) ![C/C++ CI](https://github.com/NicoG60/QOsc/workflows/C/C++%20CI/badge.svg?branch=master)
+![version](https://img.shields.io/github/v/release/NicoG60/QOsc) ![license](https://img.shields.io/github/license/NicoG60/Qosc) ![C/C++ CI](https://github.com/NicoG60/QOsc/workflows/C/C++%20CI/badge.svg?branch=master)
 
 
 
