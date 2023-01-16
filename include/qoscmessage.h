@@ -10,6 +10,8 @@
 #include <QString>
 #include <QRegularExpression>
 
+#include <memory>
+
 #define QOSC_MESSAGE_VALUE_METHOD(FType, Type) \
     inline Type to##FType(int i = 0) const { return at(i).to##FType(); }
 

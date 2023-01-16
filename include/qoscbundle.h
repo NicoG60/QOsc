@@ -2,6 +2,7 @@
 #define QOSCBUNDLE_H
 
 #include "qoscmessage.h"
+#include <memory>
 
 class QOscBundlePrivate;
 class QOSC_EXPORT QOscBundle : public QList<QOscMessage>

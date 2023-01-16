@@ -282,7 +282,7 @@ void QOscInterface::disconnect(const QString& addr)
 {
     Q_D(QOscInterface);
 
-    for(auto it = d->methods.cbegin(); it != d->methods.cend();)
+    for(auto it = d->methods.begin(); it != d->methods.end();)
     {
         if((*it)->addr == addr)
             it = d->methods.erase(it);

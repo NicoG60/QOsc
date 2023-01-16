@@ -5,6 +5,7 @@
 #include "qoscmessage.h"
 #include "qoscbundle.h"
 #include <QHostAddress>
+#include <memory>
 
 class QOscInterfacePrivate;
 class QOSC_EXPORT QOscInterface :  public QObject

@@ -8,6 +8,8 @@
 #include <QColor>
 #include <QDateTime>
 
+#include <memory>
+
 #define QOSC_VALUE_ACCESS(FType, Type, Default) \
     Type to##FType(Type defaultValue = Default) const; \
     bool is##FType() const;
