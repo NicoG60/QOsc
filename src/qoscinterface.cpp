@@ -11,6 +11,7 @@ class QOscInterfacePrivate
 
 public:
     QOscInterfacePrivate() = default;
+    ~QOscInterfacePrivate() = default;
 
     void rebind();
     void updateLocalAddr();
@@ -198,6 +199,11 @@ QOscInterface::QOscInterface(QObject* parent) :
     QObject::connect(&d->socket, &QAbstractSocket::readyRead,
                      this,       &QOscInterface::readReady);
     d->rebind();
+}
+
+QOscInterface::~QOscInterface()
+{
+
 }
 
 QString QOscInterface::remoteAddr() const

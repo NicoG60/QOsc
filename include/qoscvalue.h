@@ -128,7 +128,7 @@ protected:
     uint hash(uint seed) const;
 
 protected:
-    QScopedPointer<QOscValuePrivate> d_ptr;
+    std::unique_ptr<QOscValuePrivate> d_ptr;
 };
 
 #endif // QOSCVALUE_H

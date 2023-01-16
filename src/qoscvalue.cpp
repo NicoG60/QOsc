@@ -253,9 +253,9 @@ QOscValue::~QOscValue()
 QOscValue& QOscValue::operator=(const QOscValue& copy)
 {
     if(!d_ptr || d_ptr->type != copy.type())
-        d_ptr.reset(QOscValuePrivate::newCopyFrom(copy.d_ptr.data()));
+        d_ptr.reset(QOscValuePrivate::newCopyFrom(copy.d_ptr.get()));
     else
-        QOscValuePrivate::copy(copy.d_ptr.data(), d_ptr.data());
+        QOscValuePrivate::copy(copy.d_ptr.get(), d_ptr.get());
 
     return *this;
 }
@@ -469,7 +469,7 @@ bool QOscValue::isDateTime() const
 bool QOscValue::isNow() const
 {
     Q_ASSERT(isTimeTag());
-    return dynamic_cast<const QOscTimeTagPrivate*>(d_ptr.data())->isNow();
+    return dynamic_cast<const QOscTimeTagPrivate*>(d_ptr.get())->isNow();
 }
 
 bool QOscValue::isMidi() const
@@ -480,25 +480,25 @@ bool QOscValue::isMidi() const
 qint8 QOscValue::port() const
 {
     Q_ASSERT(isMidi());
-    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.data())->port;
+    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.get())->port;
 }
 
 qint8 QOscValue::status() const
 {
     Q_ASSERT(isMidi());
-    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.data())->status;
+    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.get())->status;
 }
 
 qint8 QOscValue::data1() const
 {
     Q_ASSERT(isMidi());
-    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.data())->data1;
+    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.get())->data1;
 }
 
 qint8 QOscValue::data2() const
 {
     Q_ASSERT(isMidi());
-    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.data())->data2;
+    return dynamic_cast<const QOscMidiPrivate*>(d_ptr.get())->data2;
 }
 
 QOscValue& QOscValue::operator =(qint32 value)
@@ -594,7 +594,7 @@ QOscValue& QOscValue::operator =(const QDateTime& value)
 
 bool QOscValue::operator ==(const QOscValue& other) const
 {
-    return QOscValuePrivate::compare(d_ptr.data(), other.d_ptr.data());
+    return QOscValuePrivate::compare(d_ptr.get(), other.d_ptr.get());
 }
 
 bool QOscValue::operator !=(const QOscValue& other) const

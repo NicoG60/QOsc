@@ -19,6 +19,7 @@ class QOSC_EXPORT QOscInterface :  public QObject
 
 public:
     QOscInterface(QObject* parent = nullptr);
+    ~QOscInterface() override;
 
     QString remoteAddr() const;
     void setRemoteAddr(const QString& addr);
@@ -73,7 +74,7 @@ signals:
 private:
     Q_DECLARE_PRIVATE(QOscInterface);
     Q_DISABLE_COPY(QOscInterface);
-    QScopedPointer<QOscInterfacePrivate> d_ptr;
+    std::unique_ptr<QOscInterfacePrivate> d_ptr;
 
     void connect(const QOscMethod::ptr& method);
 

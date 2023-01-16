@@ -94,7 +94,7 @@ public:
     static QOscMessage read(QIODevice* dev);
 
 private:
-    QScopedPointer<QOscMessagePrivate> d_ptr;
+    std::unique_ptr<QOscMessagePrivate> d_ptr;
     Q_DECLARE_PRIVATE(QOscMessage);
 };
 

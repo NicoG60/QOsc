@@ -39,7 +39,7 @@ public:
     static QOscBundle read(QIODevice* dev);
 
 private:
-    QScopedPointer<QOscBundlePrivate> d_ptr;
+    std::unique_ptr<QOscBundlePrivate> d_ptr;
     Q_DECLARE_PRIVATE(QOscBundle)
 };
 
