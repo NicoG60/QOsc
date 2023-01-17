@@ -23,8 +23,8 @@ cmake --build build
 Or use it as a subdirectory
 
 ```cmake
-add_subdirectory(path/to/QOsc)
-target_link_libraries(mytarget QOsc EXCLUDE_FROM_ALL)
+add_subdirectory(path/to/QOsc EXCLUDE_FROM_ALL)
+target_link_libraries(mytarget PUBLIC QOsc)
 ```
 
 ## Usage
