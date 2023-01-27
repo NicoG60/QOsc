@@ -14,11 +14,11 @@ void QOscBundlePrivate::write(QIODevice* dev) const
     Q_Q(const QOscBundle);
     Q_ASSERT(q->isValid());
 
-    dev->write("#bundle");
+    dev->write("#bundle\0", 8);
 
     time.d_ptr->writeData(dev);
 
-    qint64 size = 7+8;
+    qint64 size = 8+8;
 
     for(auto& e : *q)
     {
@@ -41,8 +41,12 @@ void QOscBundlePrivate::load(QIODevice* dev)
 {
     Q_Q(QOscBundle);
 
-    if(dev->read(7) != "#bundle")
-        return;
+    {
+        QByteArray header = dev->read(8);
+        header.resize(7);
+        if(header != "#bundle")
+            return;
+    }
 
     q->clear();
 
