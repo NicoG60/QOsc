@@ -32,7 +32,17 @@ endif()
 
 option(QOSC_BUILD_TESTS "Build the unit tests"  OFF)
 
+# setup deps
+if(NOT TARGET Qt::Core)
+    find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+    set(Qt "Qt${QT_VERSION_MAJOR}")
+    find_package(${Qt} COMPONENTS Core REQUIRED)
+    find_package(${Qt} COMPONENTS Gui REQUIRED)
+    find_package(${Qt} COMPONENTS Network REQUIRED)
+endif()
+
 if(${QOSC_BUILD_TESTS})
+    find_package(${Qt} COMPONENTS Test REQUIRED)
     enable_testing()
 endif()
 

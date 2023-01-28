@@ -123,7 +123,7 @@ void packets::test_bundle()
 
     QByteArray data = b1.package();
 
-    QCOMPARE(data, QByteArray("#bundle" // bundle mark
+    QCOMPARE(data, QByteArray("#bundle\x00" // bundle mark
                               "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
 
                               "\x00\x00\x00\x10" // first element size
@@ -135,14 +135,14 @@ void packets::test_bundle()
                               "\x00" // padding
                               , 56));
 
-    auto bundle = QOscBundle::read( QByteArray("#bundle" // bundle mark
+    auto bundle = QOscBundle::read( QByteArray("#bundle\x00" // bundle mark
                                                "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
 
                                                "\x00\x00\x00\x10" // first element size
                                                "/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A" // first element content
 
                                                "\x00\x00\x00\x24" //second element size
-                                               "#bundle\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x10/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A\x00" // second element content
+                                               "#bundle\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x10/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A\x00" // second element content
 
                                                "\x00" // padding
                                                , 76));

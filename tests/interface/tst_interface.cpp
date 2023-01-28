@@ -94,7 +94,7 @@ void interface::test_send()
     b << QOscMessage("/a/b/c", value);
 
     test.send(b);
-    verify_send(QByteArray("#bundle" // bundle mark
+    verify_send(QByteArray("#bundle\x00" // bundle mark
                            "\x00\x00\x00\x00\x00\x00\x00\x01" // timestamp
                            "\x00\x00\x00\x10" // first element size
                            "/a/b/c\x00\x00,i\x00\x00\x00\x00\x00\x0A" // first element content

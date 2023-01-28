@@ -117,7 +117,7 @@ void types::test_timetag()
 
     QVERIFY(QOscValue::asap().isNow());
 
-    QCOMPARE(QOscValue::fromUnixTimestamp(0).toDateTime(), QDateTime(QDate(1970, 1, 1), QTime(0, 0)));
+    QCOMPARE(QOscValue::fromUnixTimestamp(0).toDateTime(), QDateTime(QDate(1970, 1, 1), QTime(0, 0), Qt::UTC));
 }
 
 void types::test_char()
