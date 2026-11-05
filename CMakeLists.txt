@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(QOsc VERSION 1.2)
+cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+project(QOsc VERSION 1.3)
 set(QOSC_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 execute_process(

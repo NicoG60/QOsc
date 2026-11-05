@@ -9,10 +9,11 @@
 #include <QString>
 #include <QByteArray>
 #include <QDateTime>
+#include <QTimeZone>
 #include <QHash>
 
 #define QOSC_PRIVATE_ACCESS(FType, Type, OSCType, Default) \
-    virtual inline Type to##FType(const Type& defaultValue) const { return defaultValue; } \
+    virtual inline Type to##FType(const Type& defaultValue = Default) const { return defaultValue; } \
     virtual inline void from##FType(const Type& value) { Q_UNUSED(value) Q_ASSERT_X(false, "from"#FType, "Not a " #FType); } \
     virtual inline bool is##FType() const { return type == OSCType; }
 
@@ -450,7 +451,7 @@ public:
     inline double toUnixEpoch() const { return toNtpEpoch() - unix_to_ntp; }
 
     inline void fromTimeTag(const QDateTime& dt) override { fromUnixEpoch(dt.toMSecsSinceEpoch()/1000.0); }
-    inline QDateTime toTimeTag(const QDateTime&) const override { return QDateTime::fromMSecsSinceEpoch(toUnixEpoch()*1000, Qt::UTC); }
+    inline QDateTime toTimeTag(const QDateTime&) const override { return QDateTime::fromMSecsSinceEpoch(toUnixEpoch()*1000, QTimeZone(QTimeZone::UTC)); }
 
     inline uint hash(uint seed = 0) override { return qHash(t, seed) ^ QOscValuePrivate::hash(seed); }
 
